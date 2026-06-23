@@ -92,7 +92,7 @@ I want the system to be easily synchronized and updated using a script that uses
 - .github/ folder with skills and infrastructure
 - .claude/ folder with skills and infrastructure
 - shared scripts/ folder with scripts and infrastructure
-- README-DOK-FU.md file in root with quickstart, copy-paste commands to quickly re-use and architectural overview of the documentation system.
+- README.md file in root with quickstart, copy-paste commands to quickly re-use and architectural overview of the documentation system.
 
 
 

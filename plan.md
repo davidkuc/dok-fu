@@ -28,7 +28,7 @@ Source repo layout:
 - scripts/dokfu.py CLI (argparse)
 - templates/module.md.tmpl
 - config/dok-fu.config.json, config/tags.registry.json
-- README-DOK-FU.md, GLOSSARY
+- README.md, GLOSSARY
 
 Installed into target:
 - .github/{copilot-instructions.md, instructions/, prompts/, skills/}
@@ -113,16 +113,16 @@ Config config/dok-fu.config.json: docs_dir, source_globs[], exclude_globs[], poi
 - [X] tests/test_generate.py: .github & .claude skill bodies match (drift check)
 
 ## PHASE 5 — Docs & verification harness  (deps: P4)
-- [ ] README-DOK-FU.md: quickstart, copy-paste commands, architecture overview, link spec.md
-- [ ] examples/sample/: tiny project (1-2 source files) + matching docs for e2e
-- [ ] Verification run (below) all green; record commands in README
+- [X] README.md: quickstart, copy-paste commands, architecture overview, link spec.md
+- [X] examples/sample/: tiny project (1-2 source files) + matching docs for e2e
+- [X] Verification run (below) all green; record commands in README
 
 ## VERIFICATION (run at end of P5)
-- [ ] `python -m pytest` all unit tests pass
-- [ ] `python -m py_compile scripts/dokfu/*.py scripts/dokfu.py`
-- [ ] `dokfu install --target examples/sample` creates .github/.claude/docs/scripts
-- [ ] `dokfu generate` twice -> identical output (idempotent) + .github/.claude bodies match
-- [ ] sample doc+code pair -> `dokfu index` -> entry present in index.json
-- [ ] break a pointer & move a file -> `dokfu doctor` reports broken + orphaned (nonzero exit)
-- [ ] `dokfu tags --search auth` returns the doc; unknown tag rejected
-- [ ] `dokfu changes` lists edited file via git, and via manifest when git disabled
+- [X] `python -m pytest` all unit tests pass
+- [X] `python -m py_compile scripts/dokfu/*.py scripts/dokfu.py`
+- [X] `dokfu install --target examples/sample` creates .github/.claude/docs/scripts
+- [X] `dokfu generate` twice -> identical output (idempotent) + .github/.claude bodies match
+- [X] sample doc+code pair -> `dokfu index` -> entry present in index.json
+- [X] break a pointer & move a file -> `dokfu doctor` reports broken + orphaned (nonzero exit)
+- [X] `dokfu tags --search auth` returns the doc; unknown tag rejected
+- [X] `dokfu changes` lists edited file via git, and via manifest when git disabled
