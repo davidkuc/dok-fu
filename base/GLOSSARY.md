@@ -21,3 +21,5 @@
 **drift** — The state where a doc module, code comment, or index entry no longer accurately reflects the current source code. Detected by `dokfu doctor`.
 
 **orphan** — A doc module whose `code:` pointer points to a source folder that no longer exists, or a source file with a `dok-fu:` comment whose target module no longer exists. Also applies when a module has a section for a file that has been deleted. Reported by `dokfu doctor`.
+
+**root.md** — A special doc module at `docs/root.md` that documents source files at the project root (not inside any subdirectory). Its frontmatter uses `code: .` to point to the root directory. Mirrors the same structure and pointer rules as other doc modules.

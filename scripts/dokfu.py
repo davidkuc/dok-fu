@@ -54,6 +54,7 @@ def cmd_install(args: argparse.Namespace) -> int:
         print(f"  Manifest seeded: {result.manifest_path}")
     if result.index_path:
         print(f"  Index path: {result.index_path}")
+    print("\nRun `dokfu doctor` to validate the installation.")
     return 0
 
 
