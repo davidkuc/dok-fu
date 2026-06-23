@@ -49,6 +49,15 @@ def load_config(config_path: str | os.PathLike | None = None, root: str | os.Pat
     return cfg
 
 
+def slugify_for_dokfu_id(folder_path: str) -> str:
+    """Convert a source folder path to a stable dokfu_id slug.
+
+    Replaces ``/``, ``\\``, and ``.`` with ``-`` and lowercases the result.
+    E.g. ``src/auth`` → ``src-auth``, ``src.util`` → ``src-util``.
+    """
+    return re.sub(r"[/\\.]", "-", folder_path).lower()
+
+
 # ---------------------------------------------------------------------------
 # YAML Frontmatter
 # ---------------------------------------------------------------------------

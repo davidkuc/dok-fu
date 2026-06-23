@@ -34,6 +34,11 @@ def _get_config(args_root: str | None = None):
 # Subcommand handlers
 # ---------------------------------------------------------------------------
 
+def _resolve_root(args: argparse.Namespace) -> Path:
+    """Return the project root: --root flag if given, else cwd."""
+    return Path(args.root) if args.root else Path.cwd()
+
+
 def cmd_install(args: argparse.Namespace) -> int:
     from scripts.dokfu.install import install
 
@@ -56,7 +61,7 @@ def cmd_generate(args: argparse.Namespace) -> int:
     from scripts.dokfu.generate import generate
     from scripts.dokfu.common import load_config
 
-    root = Path.cwd()
+    root = _resolve_root(args)
     config = load_config(root=root)
     result = generate(config=config, root=root)
 
@@ -72,7 +77,7 @@ def cmd_index(args: argparse.Namespace) -> int:
     from scripts.dokfu.index import build_index, is_index_stale, write_index
     from scripts.dokfu.common import load_config
 
-    root = Path.cwd()
+    root = _resolve_root(args)
     config = load_config(root=root)
 
     if args.check:
@@ -92,7 +97,7 @@ def cmd_tags(args: argparse.Namespace) -> int:
     from scripts.dokfu.tags import list_tags, search_by_tag
     from scripts.dokfu.common import load_config
 
-    root = Path.cwd()
+    root = _resolve_root(args)
     config = load_config(root=root)
 
     if args.list:
@@ -120,11 +125,11 @@ def cmd_tags(args: argparse.Namespace) -> int:
 
 
 def cmd_doctor(args: argparse.Namespace) -> int:
-    from scripts.dokfu.doctor import run_doctor
+    from scripts.dokfu.doctor import run_doctor, fix_pointers
     from scripts.dokfu.index import build_index, write_index
     from scripts.dokfu.common import load_config
 
-    root = Path.cwd()
+    root = _resolve_root(args)
     config = load_config(root=root)
     report = run_doctor(config, root=root)
 
@@ -136,6 +141,15 @@ def cmd_doctor(args: argparse.Namespace) -> int:
         path = write_index(entries, config, root=root)
         print(f"doctor: rebuilt index → {path}")
 
+    if args.fix_pointers:
+        updated = fix_pointers(report, config, root=root)
+        if updated:
+            print(f"doctor: fixed {len(updated)} pointer(s):")
+            for p in updated:
+                print(f"  {p}")
+        else:
+            print("doctor: no pointers to fix")
+
     return 1 if report.has_problems else 0
 
 
@@ -143,7 +157,7 @@ def cmd_changes(args: argparse.Namespace) -> int:
     from scripts.dokfu.changes import get_changed_files
     from scripts.dokfu.common import load_config
 
-    root = Path.cwd()
+    root = _resolve_root(args)
     config = load_config(root=root)
     since = args.since if args.since else "HEAD~1"
 
@@ -165,6 +179,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="dokfu",
         description="Dok-Fu documentation workflow system",
+    )
+    parser.add_argument(
+        "--root",
+        default=None,
+        metavar="DIR",
+        help="Project root directory (default: current directory)",
     )
     sub = parser.add_subparsers(dest="command", metavar="COMMAND")
 
@@ -209,6 +229,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         dest="fix_index",
         help="Rebuild index if stale",
+    )
+    p_doctor.add_argument(
+        "--fix-pointers",
+        action="store_true",
+        dest="fix_pointers",
+        help="Repair source file pointer comments using dokfu_id rename detection",
     )
 
     # changes

@@ -109,6 +109,13 @@ def _emit_copilot_instructions(body: str, out_root: Path) -> bool:
     return _write_if_changed(dest, content)
 
 
+def _emit_claude_instructions(body: str, out_root: Path) -> bool:
+    """Write .claude/CLAUDE.md (raw markdown, no frontmatter)."""
+    content = _strip_frontmatter(body)
+    dest = out_root / ".claude" / "CLAUDE.md"
+    return _write_if_changed(dest, content)
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -212,10 +219,13 @@ def generate(
                 out / ".github" / "instructions" / f"{stem}.instructions.md", changed
             )
 
-        # Concatenate all instruction bodies for copilot-instructions.md
+        # Concatenate all instruction bodies for copilot-instructions.md and .claude/CLAUDE.md
         if instruction_bodies:
-            combined_body = "\n\n---\n\n".join(instruction_bodies)
+            combined_body = "\n\n---\n\n".join(b.rstrip() for b in instruction_bodies) + "\n"
             changed = _emit_copilot_instructions(combined_body, out)
             result.record(out / ".github" / "copilot-instructions.md", changed)
+
+            changed = _emit_claude_instructions(combined_body, out)
+            result.record(out / ".claude" / "CLAUDE.md", changed)
 
     return result

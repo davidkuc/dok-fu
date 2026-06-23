@@ -22,6 +22,7 @@ from dokfu.common import (
     read_frontmatter,
     read_frontmatter_file,
     sha256_file,
+    slugify_for_dokfu_id,
     walk_sources,
     write_frontmatter,
     write_frontmatter_file,
@@ -306,3 +307,24 @@ class TestSha256File:
         f.write_bytes(data)
         expected = hashlib.sha256(data).hexdigest()
         assert sha256_file(f) == expected
+
+
+# ---------------------------------------------------------------------------
+# slugify_for_dokfu_id (C3)
+# ---------------------------------------------------------------------------
+
+class TestSlugifyForDokfuId:
+    def test_simple_folder(self):
+        assert slugify_for_dokfu_id("src") == "src"
+
+    def test_nested_slash(self):
+        assert slugify_for_dokfu_id("src/auth") == "src-auth"
+
+    def test_dot_in_path(self):
+        assert slugify_for_dokfu_id("src.util") == "src-util"
+
+    def test_backslash(self):
+        assert slugify_for_dokfu_id("src\\auth") == "src-auth"
+
+    def test_deep_path(self):
+        assert slugify_for_dokfu_id("src/api/v2") == "src-api-v2"

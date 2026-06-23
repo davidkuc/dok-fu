@@ -298,4 +298,40 @@ class TestDriftDetection:
         assert "SKILL.md" in file_names
         assert "traverse.prompt.md" in file_names
         assert "dok-fu.base.instructions.md" in file_names
-        assert "copilot-instructions.md" in file_names
+
+
+# ---------------------------------------------------------------------------
+# .claude/CLAUDE.md emission (C2)
+# ---------------------------------------------------------------------------
+
+class TestClaudeInstructionsEmission:
+    def test_claude_md_written(self, base_dir, out_dir):
+        generate(root=out_dir, out_root=out_dir, base_dir=base_dir)
+        dest = out_dir / ".claude" / "CLAUDE.md"
+        assert dest.exists(), ".claude/CLAUDE.md was not created"
+
+    def test_claude_md_no_frontmatter(self, base_dir, out_dir):
+        generate(root=out_dir, out_root=out_dir, base_dir=base_dir)
+        text = (out_dir / ".claude" / "CLAUDE.md").read_text(encoding="utf-8")
+        assert not text.startswith("---"), ".claude/CLAUDE.md should not have frontmatter"
+
+    def test_claude_md_body_matches_copilot_instructions(self, base_dir, out_dir):
+        """Both CLAUDE.md and copilot-instructions.md must contain the same body."""
+        generate(root=out_dir, out_root=out_dir, base_dir=base_dir)
+        claude_text = (out_dir / ".claude" / "CLAUDE.md").read_text(encoding="utf-8")
+        copilot_text = (out_dir / ".github" / "copilot-instructions.md").read_text(encoding="utf-8")
+        assert claude_text == copilot_text
+
+    def test_claude_md_in_generate_result(self, base_dir, out_dir):
+        result = generate(root=out_dir, out_root=out_dir, base_dir=base_dir)
+        all_paths = result.written + result.unchanged
+        file_names = {Path(p).name for p in all_paths}
+        assert "CLAUDE.md" in file_names
+
+    def test_claude_md_idempotent(self, base_dir, out_dir):
+        generate(root=out_dir, out_root=out_dir, base_dir=base_dir)
+        first = (out_dir / ".claude" / "CLAUDE.md").read_text(encoding="utf-8")
+        result2 = generate(root=out_dir, out_root=out_dir, base_dir=base_dir)
+        assert (out_dir / ".claude" / "CLAUDE.md").read_text(encoding="utf-8") == first
+        assert all("CLAUDE.md" not in p for p in result2.written), \
+            "CLAUDE.md was rewritten on second run without change"

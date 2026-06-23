@@ -14,9 +14,16 @@ from dokfu.common import load_config, write_frontmatter_file
 from dokfu.index import build_index, write_index
 from dokfu.doctor import (
     DoctorReport,
+    RenameCandidate,
+    check_cross_folder_pointers,
+    check_folder_pointer_consistency,
+    check_missing_frontmatter,
     check_orphaned_sources,
     check_pointers,
+    check_renamed_docs,
+    check_section_paths,
     check_unknown_tags,
+    fix_pointers,
     run_doctor,
 )
 
@@ -241,4 +248,271 @@ class TestRunDoctor:
         src = env / "src" / "lonely.py"
         src.write_text("def foo(): pass\n", encoding="utf-8")
         report = run_doctor(cfg, root=env)
+        assert report.has_problems
+
+
+# ---------------------------------------------------------------------------
+# check_cross_folder_pointers (B1)
+# ---------------------------------------------------------------------------
+
+class TestCheckCrossFolderPointers:
+    def test_no_sources_no_violations(self, cfg, env):
+        assert check_cross_folder_pointers(cfg, root=env) == []
+
+    def test_valid_pair_no_violation(self, cfg, env):
+        _make_valid_pair(env)
+        assert check_cross_folder_pointers(cfg, root=env) == []
+
+    def test_cross_folder_violation_detected(self, cfg, env):
+        # doc covers 'src' but the source file is placed in 'src/sub'
+        doc = env / "docs" / "src.md"
+        write_frontmatter_file(
+            doc,
+            {"code": "src", "tags": ["auth"], "description": "Src module."},
+            "# src\n",
+        )
+        (env / "src" / "sub").mkdir(parents=True, exist_ok=True)
+        src = env / "src" / "sub" / "auth.py"
+        src.write_text("# dok-fu: docs/src.md\n", encoding="utf-8")
+        violations = check_cross_folder_pointers(cfg, root=env)
+        assert len(violations) == 1
+        assert "src/sub/auth.py" in violations[0]
+
+    def test_source_without_pointer_ignored(self, cfg, env):
+        (env / "src" / "noop.py").write_text("def f(): pass\n", encoding="utf-8")
+        assert check_cross_folder_pointers(cfg, root=env) == []
+
+    def test_broken_pointer_skipped(self, cfg, env):
+        # Pointer to non-existent doc — should not raise, just skip
+        src = env / "src" / "x.py"
+        src.write_text("# dok-fu: docs/ghost.md\n", encoding="utf-8")
+        result = check_cross_folder_pointers(cfg, root=env)
+        assert result == []
+
+
+# ---------------------------------------------------------------------------
+# check_folder_pointer_consistency (B2)
+# ---------------------------------------------------------------------------
+
+class TestCheckFolderPointerConsistency:
+    def test_no_sources_no_violations(self, cfg, env):
+        assert check_folder_pointer_consistency(cfg, root=env) == []
+
+    def test_same_pointer_no_violation(self, cfg, env):
+        for name in ["a.py", "b.py"]:
+            (env / "src" / name).write_text(
+                "# dok-fu: docs/src.md\n", encoding="utf-8"
+            )
+        assert check_folder_pointer_consistency(cfg, root=env) == []
+
+    def test_different_pointers_flagged(self, cfg, env):
+        (env / "src" / "a.py").write_text(
+            "# dok-fu: docs/src.md\n", encoding="utf-8"
+        )
+        (env / "src" / "b.py").write_text(
+            "# dok-fu: docs/other.md\n", encoding="utf-8"
+        )
+        violations = check_folder_pointer_consistency(cfg, root=env)
+        assert len(violations) == 1
+        assert "src" in violations[0]
+        assert "docs/src.md" in violations[0]
+        assert "docs/other.md" in violations[0]
+
+    def test_separate_folders_independent(self, cfg, env):
+        (env / "src" / "a.py").write_text(
+            "# dok-fu: docs/src.md\n", encoding="utf-8"
+        )
+        (env / "src" / "sub").mkdir()
+        (env / "src" / "sub" / "b.py").write_text(
+            "# dok-fu: docs/sub.md\n", encoding="utf-8"
+        )
+        assert check_folder_pointer_consistency(cfg, root=env) == []
+
+
+# ---------------------------------------------------------------------------
+# check_section_paths (B3)
+# ---------------------------------------------------------------------------
+
+class TestCheckSectionPaths:
+    def test_no_docs_no_issues(self, cfg, env):
+        assert check_section_paths(cfg, root=env) == []
+
+    def test_existing_section_path_ok(self, cfg, env):
+        src = env / "src" / "auth.py"
+        src.write_text("# dok-fu: docs/src.md\n", encoding="utf-8")
+        doc = env / "docs" / "src.md"
+        write_frontmatter_file(
+            doc,
+            {"code": "src", "tags": ["auth"], "description": "Src."},
+            "# src\n\n## auth.py\npath: src/auth.py\nHandles auth.\n",
+        )
+        assert check_section_paths(cfg, root=env) == []
+
+    def test_missing_section_path_flagged(self, cfg, env):
+        doc = env / "docs" / "src.md"
+        write_frontmatter_file(
+            doc,
+            {"code": "src", "tags": ["auth"], "description": "Src."},
+            "# src\n\n## ghost.py\npath: src/ghost.py\nMissing file.\n",
+        )
+        missing = check_section_paths(cfg, root=env)
+        assert len(missing) == 1
+        assert "src/ghost.py" in missing[0]
+
+    def test_doc_with_no_sections_ok(self, cfg, env):
+        doc = env / "docs" / "empty.md"
+        write_frontmatter_file(doc, {"code": "src", "description": "."}, "# empty\n")
+        assert check_section_paths(cfg, root=env) == []
+
+
+# ---------------------------------------------------------------------------
+# check_missing_frontmatter (B4)
+# ---------------------------------------------------------------------------
+
+class TestCheckMissingFrontmatter:
+    def test_no_docs_no_issues(self, cfg, env):
+        assert check_missing_frontmatter(cfg, root=env) == []
+
+    def test_complete_frontmatter_ok(self, cfg, env):
+        write_frontmatter_file(
+            env / "docs" / "x.md",
+            {"code": "src", "description": "A module.", "tags": ["auth"]},
+            "",
+        )
+        assert check_missing_frontmatter(cfg, root=env) == []
+
+    def test_missing_code_flagged(self, cfg, env):
+        write_frontmatter_file(
+            env / "docs" / "x.md",
+            {"description": "A module.", "tags": ["auth"]},
+            "",
+        )
+        results = check_missing_frontmatter(cfg, root=env)
+        assert len(results) == 1
+        path, fields = results[0]
+        assert "code" in fields
+
+    def test_missing_multiple_fields(self, cfg, env):
+        write_frontmatter_file(env / "docs" / "x.md", {"code": "src"}, "")
+        results = check_missing_frontmatter(cfg, root=env)
+        assert len(results) == 1
+        _, fields = results[0]
+        assert "description" in fields
+        assert "tags" in fields
+
+    def test_missing_tags_flagged(self, cfg, env):
+        write_frontmatter_file(
+            env / "docs" / "x.md",
+            {"code": "src", "description": "Desc."},
+            "",
+        )
+        results = check_missing_frontmatter(cfg, root=env)
+        assert len(results) == 1
+        _, fields = results[0]
+        assert "tags" in fields
+
+
+# ---------------------------------------------------------------------------
+# check_renamed_docs (C3)
+# ---------------------------------------------------------------------------
+
+def _make_doc_with_id(env: Path, rel_doc: str, code: str, dokfu_id: str) -> Path:
+    """Write a doc module with the given frontmatter."""
+    doc = env / rel_doc
+    doc.parent.mkdir(parents=True, exist_ok=True)
+    write_frontmatter_file(
+        doc,
+        {"dokfu_id": dokfu_id, "code": code, "tags": ["auth"], "description": "Module."},
+        f"# {code}\n",
+    )
+    return doc
+
+
+class TestCheckRenamedDocs:
+    def test_no_sources_no_candidates(self, cfg, env):
+        assert check_renamed_docs(cfg, root=env) == []
+
+    def test_valid_pointer_no_candidate(self, cfg, env):
+        _make_valid_pair(env)
+        assert check_renamed_docs(cfg, root=env) == []
+
+    def test_broken_pointer_with_matching_dokfu_id_detected(self, cfg, env):
+        # Source points to docs/src.md which doesn't exist.
+        # A doc at docs/src-renamed.md has dokfu_id 'src' (matching source folder).
+        _make_doc_with_id(env, "docs/src-renamed.md", "src", "src")
+        src = env / "src" / "auth.py"
+        src.parent.mkdir(parents=True, exist_ok=True)
+        src.write_text("# dok-fu: docs/src.md\n", encoding="utf-8")
+        candidates = check_renamed_docs(cfg, root=env)
+        assert len(candidates) == 1
+        c = candidates[0]
+        assert c.source_file == "src/auth.py"
+        assert c.broken_pointer == "docs/src.md"
+        assert c.candidate_doc == "docs/src-renamed.md"
+
+    def test_broken_pointer_no_matching_dokfu_id_ignored(self, cfg, env):
+        # Doc has a different dokfu_id — not a rename candidate.
+        _make_doc_with_id(env, "docs/other.md", "other", "other")
+        src = env / "src" / "auth.py"
+        src.parent.mkdir(parents=True, exist_ok=True)
+        src.write_text("# dok-fu: docs/src.md\n", encoding="utf-8")
+        candidates = check_renamed_docs(cfg, root=env)
+        assert candidates == []
+
+    def test_source_with_no_pointer_ignored(self, cfg, env):
+        (env / "src" / "noop.py").write_text("def f(): pass\n", encoding="utf-8")
+        assert check_renamed_docs(cfg, root=env) == []
+
+
+# ---------------------------------------------------------------------------
+# fix_pointers (C3)
+# ---------------------------------------------------------------------------
+
+class TestFixPointers:
+    def test_no_candidates_no_updates(self, cfg, env):
+        report = DoctorReport()
+        updated = fix_pointers(report, cfg, root=env)
+        assert updated == []
+
+    def test_updates_pointer_in_source_file(self, cfg, env):
+        _make_doc_with_id(env, "docs/src-new.md", "src", "src")
+        src = env / "src" / "auth.py"
+        src.parent.mkdir(parents=True, exist_ok=True)
+        src.write_text("# dok-fu: docs/src-old.md\n\ndef login(): pass\n", encoding="utf-8")
+        candidate = RenameCandidate(
+            source_file="src/auth.py",
+            broken_pointer="docs/src-old.md",
+            candidate_doc="docs/src-new.md",
+        )
+        report = DoctorReport(renamed=[candidate])
+        updated = fix_pointers(report, cfg, root=env)
+        assert "src/auth.py" in updated
+        new_text = src.read_text(encoding="utf-8")
+        assert "docs/src-new.md" in new_text
+        assert "docs/src-old.md" not in new_text
+
+    def test_preserves_rest_of_file(self, cfg, env):
+        _make_doc_with_id(env, "docs/src-new.md", "src", "src")
+        src = env / "src" / "auth.py"
+        src.parent.mkdir(parents=True, exist_ok=True)
+        original = "# dok-fu: docs/src-old.md\n\ndef login(): pass\nfoo = 1\n"
+        src.write_text(original, encoding="utf-8")
+        candidate = RenameCandidate(
+            source_file="src/auth.py",
+            broken_pointer="docs/src-old.md",
+            candidate_doc="docs/src-new.md",
+        )
+        report = DoctorReport(renamed=[candidate])
+        fix_pointers(report, cfg, root=env)
+        new_text = src.read_text(encoding="utf-8")
+        assert "def login(): pass" in new_text
+        assert "foo = 1" in new_text
+
+    def test_run_doctor_includes_renamed(self, cfg, env):
+        _make_doc_with_id(env, "docs/src-new.md", "src", "src")
+        src = env / "src" / "auth.py"
+        src.parent.mkdir(parents=True, exist_ok=True)
+        src.write_text("# dok-fu: docs/src-old.md\n", encoding="utf-8")
+        report = run_doctor(cfg, root=env)
+        assert len(report.renamed) == 1
         assert report.has_problems
