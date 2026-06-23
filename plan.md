@@ -104,13 +104,13 @@ Config config/dok-fu.config.json: docs_dir, source_globs[], exclude_globs[], poi
 - [X] base/GLOSSARY.md: index, module, comment, pointer, tag, traverse, enrich, update, drift, orphan
 
 ## PHASE 4 — Generator + installer + CLI  (deps: P2 + P3)
-- [ ] generate.py: read base/ once; emit .claude/skills/<n>/SKILL.md (claude frontmatter)
-- [ ] generate.py: emit .github/skills/<n>/SKILL.md + .github/prompts/<n>.prompt.md
-- [ ] generate.py: emit .github/instructions/dok-fu.instructions.md (applyTo) + .github/copilot-instructions.md
-- [ ] generate.py: token/path substitution per tool; idempotent (stable output, drift-safe)
-- [ ] install.py: copy scripts/ base/ config/ into --target; create docs/; run generate; seed manifest
-- [ ] dokfu.py: argparse wiring for install/generate/index/tags/doctor/changes
-- [ ] tests/test_generate.py: .github & .claude skill bodies match (drift check)
+- [X] generate.py: read base/ once; emit .claude/skills/<n>/SKILL.md (claude frontmatter)
+- [X] generate.py: emit .github/skills/<n>/SKILL.md + .github/prompts/<n>.prompt.md
+- [X] generate.py: emit .github/instructions/dok-fu.instructions.md (applyTo) + .github/copilot-instructions.md
+- [X] generate.py: token/path substitution per tool; idempotent (stable output, drift-safe)
+- [X] install.py: copy scripts/ base/ config/ into --target; create docs/; run generate; seed manifest
+- [X] dokfu.py: argparse wiring for install/generate/index/tags/doctor/changes
+- [X] tests/test_generate.py: .github & .claude skill bodies match (drift check)
 
 ## PHASE 5 — Docs & verification harness  (deps: P4)
 - [ ] README-DOK-FU.md: quickstart, copy-paste commands, architecture overview, link spec.md
