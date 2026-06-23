@@ -80,14 +80,14 @@ Config config/dok-fu.config.json: docs_dir, source_globs[], exclude_globs[], poi
 - [X] tests/test_common.py for the above
 
 ## PHASE 2 — Deterministic scripts  (deps: P1; modules parallel) + pytest
-- [ ] index.py: scan docs/, read frontmatter, emit flat docs/index.json; --check staleness
-- [ ] pointers.py: extract doc->code (frontmatter) and code->doc (comment) pointers
-- [ ] pointers.py: validate_pair() both directions resolve & agree
-- [ ] tags.py: --list registry; --search returns matching doc paths; reject unknown tags
-- [ ] changes.py: git diff --name-only since REF/HEAD; fallback sha256 manifest compare
-- [ ] changes.py: update_manifest() writes docs/.dokfu-manifest.json
-- [ ] doctor.py: broken pointers, orphaned docs/code, unknown tags, stale index; report+exit
-- [ ] tests: test_index, test_pointers, test_tags, test_changes, test_doctor
+- [X] index.py: scan docs/, read frontmatter, emit flat docs/index.json; --check staleness
+- [X] pointers.py: extract doc->code (frontmatter) and code->doc (comment) pointers
+- [X] pointers.py: validate_pair() both directions resolve & agree
+- [X] tags.py: --list registry; --search returns matching doc paths; reject unknown tags
+- [X] changes.py: git diff --name-only since REF/HEAD; fallback sha256 manifest compare
+- [X] changes.py: update_manifest() writes docs/.dokfu-manifest.json
+- [X] doctor.py: broken pointers, orphaned docs/code, unknown tags, stale index; report+exit
+- [X] tests: test_index, test_pointers, test_tags, test_changes, test_doctor
 
 ## PHASE 3 — Base reference content (single source)  (deps: P1; parallel w/ P2)
 - [ ] base/skills/traverse/SKILL.md: index->modules(section index)->comments->code; uses `dokfu tags`; save relevant paths to memory

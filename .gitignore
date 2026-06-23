@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.Python
+build/
+dist/
+.venv/
+venv/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+
+# Generated artifacts
+docs/.dokfu-manifest.json
+examples/sample/.github/
+examples/sample/.claude/
+examples/sample/docs/
+examples/sample/scripts/dokfu/
+examples/sample/base/
+examples/sample/config/
