@@ -64,10 +64,10 @@ Config config/dok-fu.config.json: docs_dir, source_globs[], exclude_globs[], poi
 
 ============================================================
 ## PHASE 0 — Repo scaffolding & spec  (no deps)
-- [ ] Confirm spec.md is the canonical spec; link it from README later
-- [ ] Create top-level dirs: base/, scripts/dokfu/, templates/, config/, tests/, examples/sample/
-- [ ] Add scripts/requirements.txt (pyyaml pinned; git via subprocess, no gitpython)
-- [ ] Add scripts/dokfu/__init__.py (package marker + version)
+- [X] Confirm spec.md is the canonical spec; link it from README later
+- [X] Create top-level dirs: base/, scripts/dokfu/, templates/, config/, tests/, examples/sample/
+- [X] Add scripts/requirements.txt (pyyaml pinned; git via subprocess, no gitpython)
+- [X] Add scripts/dokfu/__init__.py (package marker + version)
 
 ## PHASE 1 — Foundations: config, formats, common  (deps: P0)
 - [ ] Write config/dok-fu.config.json with all keys from FORMAT REFERENCE + sane defaults
