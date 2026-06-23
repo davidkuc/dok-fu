@@ -76,7 +76,7 @@ def _make_valid_pair(env: Path, rel_src="src/auth.py", rel_doc="docs/src.md"):
     doc.parent.mkdir(parents=True, exist_ok=True)
     body = (
         f"# {src_folder}\n\n"
-        f"## Sections\n- [auth.py](#authpy)\n\n"
+        f"## Sections\n- [auth.py](src/auth.py)\n\n"
         f"## auth.py\npath: {rel_src}\nHandles auth.\n"
     )
     dokfu_id = slugify_for_dokfu_id(src_folder)

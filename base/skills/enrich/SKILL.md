@@ -50,7 +50,7 @@ Each H2 section in the module documents one specific source file. If the module 
 3. Then ≤ 3 sentences and ≤ 5 bullet points describing the file.
 4. Update the `## Sections` bullet list at the top of the module body.
 
-Note on anchors: `## Sections` bullet anchors use GitHub-style normalization. Example: `filename.py` links to `#filenamepy` (dots removed, not replaced).
+Section links use relative file paths. Example: `[filename.py](src/component/filename.py)` where the path matches the `path:` field of that section.
 
 ### 5. Refresh the index
 

@@ -48,8 +48,8 @@ description: <one sentence>
 # <Component/Folder Name>
 
 ## Sections
-- [filename.py](#filenamepy)
-- [other.py](#otherpy)
+- [filename.py](src/component/filename.py)
+- [other.py](src/component/other.py)
 
 ## filename.py
 path: src/component/filename.py
@@ -62,7 +62,7 @@ path: src/component/other.py
 
 The `## Sections` block lists the module's H2 headings — one per source file in the folder. Each H2 section header is the **filename**, and the first line of the section body is `path: <repo-relative path>` to that specific file. For root-level files, document them in `docs/root.md` with `code: .` in the frontmatter.
 
-Anchor format: GitHub Markdown normalization — lowercase, dots and spaces removed, hyphens preserved (e.g. `login.py` → `#loginpy`; `src_auth.js` → `#src_authjs`).
+Section links use relative paths to the source file (e.g. `[login.py](src/auth/login.py)`).
 
 ### Code pointer
 A single comment line placed near the top of **each source file** (after shebang/package, before imports). Points to the parent module (folder-level doc):

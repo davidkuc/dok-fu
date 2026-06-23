@@ -149,8 +149,8 @@ description: One sentence describing this folder.
 # Auth
 
 ## Sections
-- [login.py](#loginpy)
-- [tokens.py](#tokenspy)
+- [login.py](src/auth/login.py)
+- [tokens.py](src/auth/tokens.py)
 
 ## login.py
 path: src/auth/login.py
@@ -166,7 +166,7 @@ Frontmatter fields:
 
 The `## Sections` block lists the module's H2 headings — one per source file. Each H2 header is the filename; the first line of its body is `path: <repo-relative path>` to that file.
 
-Anchor format: GitHub Markdown normalization — lowercase, dots and spaces removed, hyphens preserved (e.g. `login.py` → `#loginpy`; `src_auth.js` → `#src_authjs`).
+Section links use relative paths to the source file (e.g. `[login.py](src/auth/login.py)`).
 
 ### Code pointer (top of each source file)
 

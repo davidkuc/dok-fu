@@ -62,7 +62,7 @@ def _make_valid_pair(env: Path) -> tuple[Path, Path]:
     doc.parent.mkdir(parents=True, exist_ok=True)
     body = (
         "# Src\n\n"
-        "## Sections\n- [auth.py](#authpy)\n\n"
+        "## Sections\n- [auth.py](src/auth.py)\n\n"
         "## auth.py\npath: src/auth.py\nHandles login.\n"
     )
     write_frontmatter_file(doc, {"code": "src", "tags": ["auth"], "description": "Auth."}, body)
@@ -206,7 +206,7 @@ class TestGetSectionPaths:
     def test_returns_paths_from_sections(self, env):
         body = (
             "# Module\n\n"
-            "## Sections\n- [foo.py](#foo-py)\n- [bar.py](#bar-py)\n\n"
+            "## Sections\n- [foo.py](src/foo.py)\n- [bar.py](src/bar.py)\n\n"
             "## foo.py\npath: src/foo.py\nDoes foo things.\n\n"
             "## bar.py\npath: src/bar.py\nDoes bar things.\n"
         )
