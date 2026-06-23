@@ -146,7 +146,7 @@ def get_changed_files(
     config: dict[str, Any],
     root: str | os.PathLike | None = None,
     *,
-    since: str = "HEAD",
+    since: str = "HEAD~1",
     force_manifest: bool = False,
 ) -> tuple[list[str], str]:
     """Return a list of changed source file paths and the detection method used.
@@ -154,7 +154,7 @@ def get_changed_files(
     Args:
         config: Loaded dok-fu config dict.
         root: Project root.
-        since: Git ref to diff against (default ``"HEAD"``).
+        since: Git ref to diff against (default ``"HEAD~1"`` = last commit).
         force_manifest: If True, skip git and use the manifest method.
 
     Returns:

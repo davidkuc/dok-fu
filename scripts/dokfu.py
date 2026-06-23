@@ -17,6 +17,11 @@ import argparse
 import sys
 from pathlib import Path
 
+# Add repo root to path so 'scripts' package can be imported
+_repo_root = Path(__file__).parent.parent
+if str(_repo_root) not in sys.path:
+    sys.path.insert(0, str(_repo_root))
+
 
 def _get_config(args_root: str | None = None):
     """Load config from disk, using *args_root* as the project root."""
@@ -140,7 +145,7 @@ def cmd_changes(args: argparse.Namespace) -> int:
 
     root = Path.cwd()
     config = load_config(root=root)
-    since = args.since if args.since else "HEAD"
+    since = args.since if args.since else "HEAD~1"
 
     changed, method = get_changed_files(config, root=root, since=since)
     print(f"changes ({method}, since {since}):")

@@ -159,6 +159,17 @@ class TestGetChangedFilesGit:
         assert method == "git"
         mock_git.assert_called_once()
 
+    def test_default_ref_is_head_tilde_one(self, cfg, env):
+        """Verify the default since ref is HEAD~1 (last commit)."""
+        _write_source(env, "src/app.py")
+        with (
+            patch("dokfu.changes._git_is_available", return_value=True),
+            patch("dokfu.changes._git_changed_files", return_value=["src/app.py"]) as mock_git,
+        ):
+            changed, method = get_changed_files(cfg, root=env)  # no since specified
+        assert method == "git"
+        mock_git.assert_called_once_with("HEAD~1", env)
+
     def test_falls_back_to_manifest_when_git_fails(self, cfg, env):
         _write_source(env, "src/app.py")
         with (

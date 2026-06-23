@@ -50,6 +50,8 @@ Each H2 section in the module documents one specific source file. If the module 
 3. Then ≤ 3 sentences and ≤ 5 bullet points describing the file.
 4. Update the `## Sections` bullet list at the top of the module body.
 
+Note on anchors: `## Sections` bullet anchors use GitHub-style normalization. Example: `filename.py` links to `#filenamepy` (dots removed, not replaced).
+
 ### 5. Refresh the index
 
 After all files in scope are enriched, run:

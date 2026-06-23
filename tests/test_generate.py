@@ -165,12 +165,13 @@ class TestPromptEmission:
 class TestInstructionsEmission:
     def test_github_instructions_written(self, base_dir, out_dir):
         generate(root=out_dir, out_root=out_dir, base_dir=base_dir)
-        dest = out_dir / ".github" / "instructions" / "dok-fu.instructions.md"
+        # File is named after its stem: dok-fu.base.md → dok-fu.base.instructions.md
+        dest = out_dir / ".github" / "instructions" / "dok-fu.base.instructions.md"
         assert dest.exists()
 
     def test_github_instructions_apply_to(self, base_dir, out_dir):
         generate(root=out_dir, out_root=out_dir, base_dir=base_dir)
-        dest = out_dir / ".github" / "instructions" / "dok-fu.instructions.md"
+        dest = out_dir / ".github" / "instructions" / "dok-fu.base.instructions.md"
         fm, _ = _read_frontmatter(dest)
         assert fm.get("applyTo") == "**"
 
@@ -189,11 +190,48 @@ class TestInstructionsEmission:
         generate(root=out_dir, out_root=out_dir, base_dir=base_dir)
         base_text = (base_dir / "instructions" / "dok-fu.base.md").read_text(encoding="utf-8")
         _, instr_body = _read_frontmatter(
-            out_dir / ".github" / "instructions" / "dok-fu.instructions.md"
+            out_dir / ".github" / "instructions" / "dok-fu.base.instructions.md"
         )
         assert instr_body == base_text
         copilot_text = (out_dir / ".github" / "copilot-instructions.md").read_text(encoding="utf-8")
         assert copilot_text == base_text
+
+    def test_multiple_instruction_files_per_file_routing(self, tmp_path):
+        """Multi-file routing: each base/instructions/<stem>.md → .github/instructions/<stem>.instructions.md."""
+        base = tmp_path / "base"
+        instr_dir = base / "instructions"
+        instr_dir.mkdir(parents=True)
+        
+        # Create two instruction files: stems will be 'first' and 'second'
+        (instr_dir / "first.md").write_text("# First\n\nBody 1.\n", encoding="utf-8")
+        (instr_dir / "second.md").write_text("# Second\n\nBody 2.\n", encoding="utf-8")
+        
+        out = tmp_path
+        generate(root=out, out_root=out, base_dir=base)
+        
+        # Each should have its own .instructions.md file named after its stem
+        assert (out / ".github" / "instructions" / "first.instructions.md").exists()
+        assert (out / ".github" / "instructions" / "second.instructions.md").exists()
+
+    def test_multiple_instruction_files_concatenated_in_copilot_instructions(self, tmp_path):
+        """Copilot instructions concatenates all bodies with separator."""
+        base = tmp_path / "base"
+        instr_dir = base / "instructions"
+        instr_dir.mkdir(parents=True)
+        
+        # Create two instruction files (sorted order matters for concatenation)
+        body1 = "# First\n\nBody 1."
+        body2 = "# Second\n\nBody 2."
+        (instr_dir / "first.md").write_text(body1 + "\n", encoding="utf-8")
+        (instr_dir / "second.md").write_text(body2 + "\n", encoding="utf-8")
+        
+        out = tmp_path
+        generate(root=out, out_root=out, base_dir=base)
+        
+        # Copilot instructions should contain both bodies concatenated in sorted order
+        copilot_text = (out / ".github" / "copilot-instructions.md").read_text(encoding="utf-8")
+        expected = f"{body1}\n\n---\n\n{body2}\n"
+        assert copilot_text == expected
 
 
 # ---------------------------------------------------------------------------
@@ -259,5 +297,5 @@ class TestDriftDetection:
         file_names = {Path(p).name for p in all_paths}
         assert "SKILL.md" in file_names
         assert "traverse.prompt.md" in file_names
-        assert "dok-fu.instructions.md" in file_names
+        assert "dok-fu.base.instructions.md" in file_names
         assert "copilot-instructions.md" in file_names

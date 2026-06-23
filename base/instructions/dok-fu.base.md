@@ -48,8 +48,8 @@ description: <one sentence>
 # <Component/Folder Name>
 
 ## Sections
-- [filename.py](#filename-py)
-- [other.py](#other-py)
+- [filename.py](#filenamepy)
+- [other.py](#otherpy)
 
 ## filename.py
 path: src/component/filename.py

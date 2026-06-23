@@ -94,11 +94,11 @@ def _emit_claude_skill(name: str, body: str, out_root: Path) -> bool:
     return _write_if_changed(dest, content)
 
 
-def _emit_github_instructions(body: str, out_root: Path) -> bool:
-    """Write .github/instructions/dok-fu.instructions.md with applyTo frontmatter."""
+def _emit_github_instructions(body: str, out_root: Path, stem: str = "dok-fu") -> bool:
+    """Write .github/instructions/<stem>.instructions.md with applyTo frontmatter."""
     fm = _build_frontmatter({"applyTo": "**"})
     content = fm + _strip_frontmatter(body)
-    dest = out_root / ".github" / "instructions" / "dok-fu.instructions.md"
+    dest = out_root / ".github" / "instructions" / f"{stem}.instructions.md"
     return _write_if_changed(dest, content)
 
 
@@ -196,19 +196,26 @@ def generate(
             result.record(out / ".github" / "prompts" / f"{name}.prompt.md", changed)
 
     # ------------------------------------------------------------------
-    # Instructions:  base/instructions/dok-fu.base.md → .github
+    # Instructions:  base/instructions/<stem>.md → per-file output + copilot-instructions
     # ------------------------------------------------------------------
     instructions_dir = base / "instructions"
+    instruction_bodies: list[str] = []
     if instructions_dir.exists():
         for instr_file in sorted(instructions_dir.glob("*.md")):
+            stem = instr_file.stem
             body = _read_base_file(instr_file)
+            instruction_bodies.append(body)
 
-            changed = _emit_github_instructions(body, out)
+            # Per-file GitHub instructions: base/instructions/<stem>.md → .github/instructions/<stem>.instructions.md
+            changed = _emit_github_instructions(body, out, stem=stem)
             result.record(
-                out / ".github" / "instructions" / "dok-fu.instructions.md", changed
+                out / ".github" / "instructions" / f"{stem}.instructions.md", changed
             )
 
-            changed = _emit_copilot_instructions(body, out)
+        # Concatenate all instruction bodies for copilot-instructions.md
+        if instruction_bodies:
+            combined_body = "\n\n---\n\n".join(instruction_bodies)
+            changed = _emit_copilot_instructions(combined_body, out)
             result.record(out / ".github" / "copilot-instructions.md", changed)
 
     return result

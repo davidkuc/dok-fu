@@ -113,8 +113,8 @@ def check_pointers(
 
     Returns:
         (broken, orphaned_docs) - lists of root-relative posix path strings.
-        broken: docs with any pointer validation failure.
-        orphaned_docs: docs where the source file simply does not exist.
+        broken: docs with any pointer validation failure (source file missing or pointer mismatch).
+        orphaned_docs: docs where the source file simply does not exist (subset of broken).
     """
     root = Path(root or config.get("_root") or Path.cwd())
     results = validate_all_docs(config, root=root)
