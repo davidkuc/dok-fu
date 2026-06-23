@@ -28,6 +28,7 @@ If the list is empty, documentation is up to date. Stop.
 
 - Locate the `dok-fu:` pointer comment near the top.
 - If the pointer is absent, treat the file as unenriched and run the **Enrich** skill instead.
+- If the pointer target no longer exists (broken pointer), run `dokfu doctor` — it will identify rename candidates matched by `dokfu_id`. Run `dokfu doctor --fix-pointers` to repair, then reload the file and continue.
 
 #### 2b. Open the linked doc module
 
@@ -65,7 +66,7 @@ This regenerates `docs/index.json` from the current frontmatter of all modules.
 
 ### 4. Validate
 
-Run `dokfu doctor` to confirm no broken pointers, unknown tags, or stale index remain. Resolve any reported issues before finishing.
+Run `dokfu doctor` to confirm no broken pointers, unknown tags, or stale index remain. Resolve any reported issues before finishing. If doctor reports broken pointers with rename candidates, run `dokfu doctor --fix-pointers` before finalizing.
 
 ## Rules
 

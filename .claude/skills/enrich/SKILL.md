@@ -18,7 +18,7 @@ A source file is fully enriched when all three of the following are true:
 
 ### 1. Identify scope
 
-Use `dokfu doctor` to get a list of files with missing pointers, missing modules, or missing index entries. Work through that list.
+Use `dokfu doctor` to get a list of files with missing pointers, missing modules, or missing index entries. Work through that list. If `dokfu doctor` reports rename candidates (broken pointer with a `dokfu_id` match), run `dokfu doctor --fix-pointers` first — these are not documentation gaps, they are pointer repairs.
 
 If targeting a specific file or directory, scope the check manually: read the file, inspect for a `dok-fu:` comment, look up the mirrored doc path, check the index.
 
@@ -53,6 +53,8 @@ Each H2 section in the module documents one specific source file. If the module 
 2. First line of the section body: `path: <repo-relative-path-to-file>`
 3. Then ≤ 3 sentences and ≤ 5 bullet points describing the file.
 4. Update the `## Sections` bullet list at the top of the module body.
+
+Note on anchors: `## Sections` bullet anchors use GitHub-style normalization. Example: `filename.py` links to `#filenamepy` (dots removed, not replaced).
 
 ### 5. Refresh the index
 

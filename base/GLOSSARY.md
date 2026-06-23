@@ -20,6 +20,10 @@
 
 **drift** — The state where a doc module, code comment, or index entry no longer accurately reflects the current source code. Detected by `dokfu doctor`.
 
-**orphan** — A doc module whose `code:` pointer points to a source folder that no longer exists, or a source file with a `dok-fu:` comment whose target module no longer exists. Also applies when a module has a section for a file that has been deleted. Reported by `dokfu doctor`.
+**orphan** — A doc module whose `code:` pointer points to a source folder that no longer exists, or a source file with a `dok-fu:` comment whose target module no longer exists. Also applies when a module has a section for a file that has been deleted. A broken pointer with a matching `dokfu_id` in another doc is a *rename candidate*, not an orphan. Reported by `dokfu doctor`.
 
 **root.md** — A special doc module at `docs/root.md` that documents source files at the project root (not inside any subdirectory). Its frontmatter uses `code: .` to point to the root directory. Mirrors the same structure and pointer rules as other doc modules.
+
+**rename candidate** — A source file whose `dok-fu:` pointer target no longer exists, but a doc module with a matching `dokfu_id` was found at a different path. Detected by `dokfu doctor`; repaired by `dokfu doctor --fix-pointers`.
+
+**dokfu_id** — A stable slug in doc module frontmatter derived from the source folder path (e.g. `src/auth` → `src-auth`). Used by `dokfu doctor` to match broken pointers to renamed or moved doc modules.

@@ -1,3 +1,6 @@
+---
+applyTo: '**'
+---
 # Dok-Fu — System Instructions
 
 ## What is Dok-Fu
