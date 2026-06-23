@@ -1,0 +1,16 @@
+{
+  "auth":    "authentication and authorization patterns",
+  "http":    "HTTP requests, responses, and routing",
+  "config":  "configuration loading and management",
+  "cli":     "command-line interface and argument parsing",
+  "io":      "file and stream input/output operations",
+  "test":    "testing utilities, fixtures, and helpers",
+  "db":      "database access and query logic",
+  "cache":   "caching strategies and implementations",
+  "queue":   "job queues and async task processing",
+  "model":   "data models, schemas, and validation",
+  "service": "business logic and service layer components",
+  "util":    "general-purpose utility and helper functions",
+  "deploy":  "deployment, CI/CD, and infrastructure scripts",
+  "error":   "error handling, exceptions, and logging"
+}

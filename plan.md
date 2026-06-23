@@ -70,14 +70,14 @@ Config config/dok-fu.config.json: docs_dir, source_globs[], exclude_globs[], poi
 - [X] Add scripts/dokfu/__init__.py (package marker + version)
 
 ## PHASE 1 — Foundations: config, formats, common  (deps: P0)
-- [ ] Write config/dok-fu.config.json with all keys from FORMAT REFERENCE + sane defaults
-- [ ] Write config/tags.registry.json seed vocabulary (e.g. auth, http, config, cli, io, test)
-- [ ] common.py: load_config()
-- [ ] common.py: read/write YAML frontmatter (parse + serialize, preserve body)
-- [ ] common.py: walk_sources(config) honoring source_globs/exclude_globs
-- [ ] common.py: map_source_to_doc(path) + map_doc_to_source(path) (docs/ mirror rules)
-- [ ] common.py: comment_for_ext(ext) + build/parse pointer line
-- [ ] tests/test_common.py for the above
+- [X] Write config/dok-fu.config.json with all keys from FORMAT REFERENCE + sane defaults
+- [X] Write config/tags.registry.json seed vocabulary (e.g. auth, http, config, cli, io, test)
+- [X] common.py: load_config()
+- [X] common.py: read/write YAML frontmatter (parse + serialize, preserve body)
+- [X] common.py: walk_sources(config) honoring source_globs/exclude_globs
+- [X] common.py: map_source_to_doc(path) + map_doc_to_source(path) (docs/ mirror rules)
+- [X] common.py: comment_for_ext(ext) + build/parse pointer line
+- [X] tests/test_common.py for the above
 
 ## PHASE 2 — Deterministic scripts  (deps: P1; modules parallel) + pytest
 - [ ] index.py: scan docs/, read frontmatter, emit flat docs/index.json; --check staleness
