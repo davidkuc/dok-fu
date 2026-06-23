@@ -26,3 +26,6 @@ examples/sample/docs/
 examples/sample/scripts/dokfu/
 examples/sample/base/
 examples/sample/config/
+
+# Dev
+.github\dok-fu-dev.instructions.md
