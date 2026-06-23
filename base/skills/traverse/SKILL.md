@@ -2,6 +2,13 @@
 
 Traverse the documentation hierarchy to gather relevant information without loading the entire codebase into context.
 
+## Scripts
+
+| Command | Purpose |
+|---|---|
+| `dokfu tags --search <TAG>` | Find modules tagged with a specific tag |
+| `dokfu index` | Build `docs/index.json` if absent |
+
 ## Flow
 
 Index → Modules (section index) → Comments → Code

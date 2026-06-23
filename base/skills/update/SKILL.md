@@ -2,6 +2,16 @@
 
 Synchronize documentation with recent changes in the codebase.
 
+## Scripts
+
+| Command | Purpose |
+|---|---|
+| `dokfu changes [--since <REF>]` | List source files changed since ref (git primary, manifest fallback) |
+| `dokfu doctor` | Validate pointers, tags, and index freshness; report broken/orphaned |
+| `dokfu doctor --fix-index` | Rebuild index if stale |
+| `dokfu doctor --fix-pointers` | Repair broken pointer comments for rename candidates |
+| `dokfu index` | Rebuild `docs/index.json` after all modules are updated |
+
 ## When to run
 
 Run Update after any batch of source file edits — before committing or after a feature branch lands.

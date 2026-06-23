@@ -2,6 +2,16 @@
 
 Detect undocumented parts of the codebase and fill the gaps within terseness limits.
 
+Format specification: `base/FORMAT.md`
+
+## Scripts
+
+| Command | Purpose |
+|---|---|
+| `dokfu doctor` | Identify files with missing pointers, modules, or index entries |
+| `dokfu doctor --fix-pointers` | Repair broken pointer comments for rename candidates |
+| `dokfu index` | Rebuild `docs/index.json` after enrichment |
+
 ## What "enriched" means
 
 A source file is fully enriched when all three of the following are true:
