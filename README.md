@@ -2,8 +2,6 @@
 
 A documentation workflow system that connects source code and documentation through two-way pointers, a searchable index, and a controlled tag vocabulary. Designed for incremental, AI-assisted documentation that stays in sync with a living codebase.
 
-> See [spec.md](spec.md) for the full requirements spec.
-
 ---
 
 ## Quickstart
@@ -41,7 +39,10 @@ python scripts/dokfu.py doctor
 # Validate and rebuild index if stale
 python scripts/dokfu.py doctor --fix-index
 
-# List source files changed since HEAD (git primary, manifest fallback)
+# Validate and auto-repair broken doc↔code pointers
+python scripts/dokfu.py doctor --fix-pointers
+
+# List source files changed since last commit (HEAD~1 default)
 python scripts/dokfu.py changes
 
 # List changed files since a specific git ref
@@ -84,10 +85,11 @@ Generated into any target project:
 <target>/
 ├── .github/
 │   ├── copilot-instructions.md
-│   ├── instructions/dok-fu.instructions.md
+│   ├── instructions/dok-fu.base.instructions.md
 │   ├── prompts/{traverse,enrich,update}.prompt.md
 │   └── skills/{traverse,enrich,update}/SKILL.md
 └── .claude/
+    ├── CLAUDE.md
     └── skills/{traverse,enrich,update}/SKILL.md
 ```
 
@@ -166,19 +168,15 @@ python -m pytest
 # Syntax check
 python -m py_compile scripts/dokfu/*.py scripts/dokfu.py
 
-# Install into sample
-python scripts/dokfu.py install --target examples/sample
+# Install into a test target
+python scripts/dokfu.py install --target /tmp/test-project
 
-# Idempotency (second run should show 0 written)
-python scripts/dokfu.py generate
-python scripts/dokfu.py generate
-
-# From sample dir: index, doctor, tags
-cd examples/sample
-python ../../scripts/dokfu.py index
-python ../../scripts/dokfu.py doctor
-python ../../scripts/dokfu.py tags --search util
-python ../../scripts/dokfu.py changes
+# Verify installed target's own CLI runs
+cd /tmp/test-project
+python scripts/dokfu.py index
+python scripts/dokfu.py doctor
+python scripts/dokfu.py tags --search util
+python scripts/dokfu.py changes
 ```
 
 ---

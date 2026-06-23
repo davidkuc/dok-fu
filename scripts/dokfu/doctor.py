@@ -331,11 +331,13 @@ def check_section_paths(
     config: dict[str, Any],
     root: str | os.PathLike | None = None,
 ) -> list[str]:
-    """Find doc section 'path:' entries that reference non-existent files.
+    """Find doc section 'path:' entries that reference non-existent files or paths outside the module's code folder.
 
     Returns:
-        List of human-readable strings, one per missing path.
+        List of human-readable strings, one per missing or boundary-violating path.
     """
+    from .common import read_frontmatter_file
+
     root = Path(root or config.get("_root") or Path.cwd())
     docs_dir = config.get("docs_dir", "docs")
     docs_root = root / docs_dir
@@ -347,6 +349,14 @@ def check_section_paths(
     for doc_path in sorted(docs_root.rglob("*.md")):
         if any(part.startswith(".") for part in doc_path.parts):
             continue
+        try:
+            fm, _ = read_frontmatter_file(doc_path)
+        except (ValueError, OSError):
+            continue
+        code_field = fm.get("code")
+        if not code_field:
+            continue  # no code field — cannot validate boundary
+        code_folder = (root / code_field).resolve()
         section_paths = get_section_paths(doc_path)
         for sp in section_paths:
             resolved = root / sp
@@ -354,6 +364,14 @@ def check_section_paths(
                 missing.append(
                     f"{doc_path.relative_to(root).as_posix()}: section path '{sp}' does not exist"
                 )
+            else:
+                # Check boundary: section path must be within the module's code folder
+                try:
+                    resolved.relative_to(code_folder)
+                except ValueError:
+                    missing.append(
+                        f"{doc_path.relative_to(root).as_posix()}: section path '{sp}' is outside module's code folder '{code_field}'"
+                    )
 
     return missing
 
@@ -364,7 +382,7 @@ def check_missing_frontmatter(
 ) -> list[tuple[str, list[str]]]:
     """Find doc files missing required frontmatter fields.
 
-    Required fields: ``code``, ``description``, ``tags``.
+    Required fields: ``code``, ``description``, ``tags``, ``dokfu_id``.
 
     Returns:
         List of (root-relative doc path, [missing field names]).
@@ -379,7 +397,7 @@ def check_missing_frontmatter(
 
     from .common import read_frontmatter_file
 
-    required = ["code", "description", "tags"]
+    required = ["code", "description", "tags", "dokfu_id"]
     for doc_path in sorted(docs_root.rglob("*.md")):
         if any(part.startswith(".") for part in doc_path.parts):
             continue

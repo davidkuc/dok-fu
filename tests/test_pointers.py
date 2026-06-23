@@ -62,7 +62,7 @@ def _make_valid_pair(env: Path) -> tuple[Path, Path]:
     doc.parent.mkdir(parents=True, exist_ok=True)
     body = (
         "# Src\n\n"
-        "## Sections\n- [auth.py](#auth-py)\n\n"
+        "## Sections\n- [auth.py](#authpy)\n\n"
         "## auth.py\npath: src/auth.py\nHandles login.\n"
     )
     write_frontmatter_file(doc, {"code": "src", "tags": ["auth"], "description": "Auth."}, body)

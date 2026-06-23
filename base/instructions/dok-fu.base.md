@@ -17,7 +17,7 @@ Dok-Fu is a documentation workflow system that connects source code and document
 3. Code comments — high detail; granular descriptions inside source files
 4. Source code — full detail; last resort
 
-**Deterministic Foundation** — scripts handle traversal, extraction, and validation. AI handles reasoning, writing, and orchestration. Never ask AI to do what a script can do reliably.
+**Deterministic Foundation** — scripts handle traversal, extraction, and validation. AI handles reasoning, writing, and orchestration. Never implement what a script can do reliably or if a script already handles a certain problem.
 
 **AI Augmenting** — AI uses scripts as tools. Scripts produce structured output; AI interprets, writes, and decides.
 
@@ -61,6 +61,8 @@ path: src/component/other.py
 ```
 
 The `## Sections` block lists the module's H2 headings — one per source file in the folder. Each H2 section header is the **filename**, and the first line of the section body is `path: <repo-relative path>` to that specific file. For root-level files, document them in `docs/root.md` with `code: .` in the frontmatter.
+
+Anchor format: GitHub Markdown normalization — lowercase, dots and spaces removed, hyphens preserved (e.g. `login.py` → `#loginpy`; `src_auth.js` → `#src_authjs`).
 
 ### Code pointer
 A single comment line placed near the top of **each source file** (after shebang/package, before imports). Points to the parent module (folder-level doc):

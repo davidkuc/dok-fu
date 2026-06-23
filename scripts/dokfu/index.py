@@ -92,14 +92,17 @@ def write_index(entries: list[dict[str, Any]], config: dict[str, Any], root: str
 def read_index(config: dict[str, Any], root: str | os.PathLike | None = None) -> list[dict[str, Any]]:
     """Read and return the current docs/index.json as a list of dicts.
 
-    Returns an empty list if the file does not exist.
+    Returns an empty list if the file does not exist or is malformed.
     """
     root = Path(root or config.get("_root") or Path.cwd())
     docs_dir = config.get("docs_dir", "docs")
     index_path = root / docs_dir / "index.json"
     if not index_path.exists():
         return []
-    return json.loads(index_path.read_text(encoding="utf-8"))
+    try:
+        return json.loads(index_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return []
 
 
 def is_index_stale(config: dict[str, Any], root: str | os.PathLike | None = None) -> bool:

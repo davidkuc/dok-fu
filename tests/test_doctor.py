@@ -70,17 +70,19 @@ def _make_valid_pair(env: Path, rel_src="src/auth.py", rel_doc="docs/src.md"):
     The module (rel_doc) covers the folder containing rel_src.
     """
     from pathlib import PurePosixPath
+    from dokfu.common import slugify_for_dokfu_id
     src_folder = str(PurePosixPath(rel_src).parent)
     doc = env / rel_doc
     doc.parent.mkdir(parents=True, exist_ok=True)
     body = (
         f"# {src_folder}\n\n"
-        f"## Sections\n- [auth.py](#auth-py)\n\n"
+        f"## Sections\n- [auth.py](#authpy)\n\n"
         f"## auth.py\npath: {rel_src}\nHandles auth.\n"
     )
+    dokfu_id = slugify_for_dokfu_id(src_folder)
     write_frontmatter_file(
         doc,
-        {"code": src_folder, "tags": ["auth"], "description": "Auth module."},
+        {"code": src_folder, "tags": ["auth"], "description": "Auth module.", "dokfu_id": dokfu_id},
         body,
     )
     src = env / rel_src
@@ -361,8 +363,34 @@ class TestCheckSectionPaths:
 
     def test_doc_with_no_sections_ok(self, cfg, env):
         doc = env / "docs" / "empty.md"
-        write_frontmatter_file(doc, {"code": "src", "description": "."}, "# empty\n")
+        write_frontmatter_file(doc, {"code": "src", "description": ".", "dokfu_id": "src"}, "# empty\n")
         assert check_section_paths(cfg, root=env) == []
+
+    def test_section_path_within_code_folder_ok(self, cfg, env):
+        (env / "src" / "auth").mkdir(parents=True, exist_ok=True)
+        (env / "src" / "auth" / "login.py").write_text("# dok-fu: docs/src-auth.md\n", encoding="utf-8")
+        doc = env / "docs" / "src-auth.md"
+        write_frontmatter_file(
+            doc,
+            {"code": "src/auth", "tags": ["auth"], "description": "Auth.", "dokfu_id": "src-auth"},
+            "# auth\n\n## login.py\npath: src/auth/login.py\nHandles login.\n",
+        )
+        assert check_section_paths(cfg, root=env) == []
+
+    def test_section_path_outside_code_folder_flagged(self, cfg, env):
+        (env / "src" / "auth").mkdir(parents=True, exist_ok=True)
+        (env / "src" / "other").mkdir(parents=True, exist_ok=True)
+        (env / "src" / "other" / "util.py").write_text("def f(): pass\n", encoding="utf-8")
+        doc = env / "docs" / "src-auth.md"
+        write_frontmatter_file(
+            doc,
+            {"code": "src/auth", "tags": ["auth"], "description": "Auth.", "dokfu_id": "src-auth"},
+            "# auth\n\n## util.py\npath: src/other/util.py\nUtil.\n",
+        )
+        violations = check_section_paths(cfg, root=env)
+        assert len(violations) == 1
+        assert "src/other/util.py" in violations[0]
+        assert "outside" in violations[0]
 
 
 # ---------------------------------------------------------------------------
@@ -376,7 +404,7 @@ class TestCheckMissingFrontmatter:
     def test_complete_frontmatter_ok(self, cfg, env):
         write_frontmatter_file(
             env / "docs" / "x.md",
-            {"code": "src", "description": "A module.", "tags": ["auth"]},
+            {"code": "src", "description": "A module.", "tags": ["auth"], "dokfu_id": "src"},
             "",
         )
         assert check_missing_frontmatter(cfg, root=env) == []
@@ -410,6 +438,25 @@ class TestCheckMissingFrontmatter:
         assert len(results) == 1
         _, fields = results[0]
         assert "tags" in fields
+
+    def test_missing_dokfu_id_flagged(self, cfg, env):
+        write_frontmatter_file(
+            env / "docs" / "x.md",
+            {"code": "src", "description": "Desc.", "tags": ["auth"]},
+            "",
+        )
+        results = check_missing_frontmatter(cfg, root=env)
+        assert len(results) == 1
+        _, fields = results[0]
+        assert "dokfu_id" in fields
+
+    def test_all_required_fields_present_ok(self, cfg, env):
+        write_frontmatter_file(
+            env / "docs" / "x.md",
+            {"code": "src", "description": "Desc.", "tags": ["auth"], "dokfu_id": "src"},
+            "",
+        )
+        assert check_missing_frontmatter(cfg, root=env) == []
 
 
 # ---------------------------------------------------------------------------

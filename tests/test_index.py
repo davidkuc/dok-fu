@@ -117,6 +117,14 @@ class TestWriteReadIndex:
     def test_read_missing_returns_empty(self, cfg, env):
         assert read_index(cfg, root=env) == []
 
+    def test_read_empty_file_returns_empty(self, cfg, env):
+        (env / "docs" / "index.json").write_bytes(b"")
+        assert read_index(cfg, root=env) == []
+
+    def test_read_malformed_json_returns_empty(self, cfg, env):
+        (env / "docs" / "index.json").write_text("not json", encoding="utf-8")
+        assert read_index(cfg, root=env) == []
+
 
 # ---------------------------------------------------------------------------
 # is_index_stale

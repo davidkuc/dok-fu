@@ -110,6 +110,14 @@ def install(
             copied = _copy_tree(src_dir, dst_dir, overwrite=overwrite)
             result.copied_files.extend(str(p) for p in copied)
 
+    # 1a. Copy entry point script
+    dokfu_py_src = src / "scripts" / "dokfu.py"
+    if dokfu_py_src.exists():
+        dokfu_py_dst = target / "scripts" / "dokfu.py"
+        dokfu_py_dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(dokfu_py_src, dokfu_py_dst)
+        result.copied_files.append(str(dokfu_py_dst))
+
     # 2. Ensure docs/ directory exists
     docs_dir = target / "docs"
     _ensure_dir(docs_dir)
