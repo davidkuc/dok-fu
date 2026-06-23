@@ -48,6 +48,43 @@ class ValidationResult:
 
 
 # ---------------------------------------------------------------------------
+# Section path extraction
+# ---------------------------------------------------------------------------
+
+def get_section_paths(doc_path: str | os.PathLike) -> list[str]:
+    """Return the repo-relative file paths declared in module section bodies.
+
+    Scans H2 section bodies for ``path: <value>`` lines.  Each H2 section
+    in a module documents one source file; the first ``path:`` line after
+    the H2 heading gives its repo-relative path.
+
+    Args:
+        doc_path: Absolute path to the .md doc file.
+
+    Returns:
+        List of path strings in declaration order.
+    """
+    import re as _re
+    try:
+        _, body = read_frontmatter_file(doc_path)
+    except (ValueError, OSError):
+        return []
+
+    paths: list[str] = []
+    in_h2 = False
+    for line in body.splitlines():
+        if line.startswith("## "):
+            in_h2 = True
+            continue
+        if in_h2:
+            m = _re.match(r"^path:\s+(\S+)", line.strip())
+            if m:
+                paths.append(m.group(1))
+                in_h2 = False  # one path per section
+    return paths
+
+
+# ---------------------------------------------------------------------------
 # doc -> code extraction
 # ---------------------------------------------------------------------------
 
@@ -124,41 +161,40 @@ def validate_pair(
     doc_path = Path(doc_path)
     result = ValidationResult(doc_path=doc_path, source_path=None)
 
-    # 1. Check doc->code pointer
+    # 1. Check doc->code pointer (must reference a source folder)
     code_field = get_doc_code_pointer(doc_path)
     if not code_field:
         result.issues.append(f"Doc missing 'code' frontmatter field: {doc_path.relative_to(root).as_posix()}")
         return result
 
     result.doc_has_code_field = True
-    source_path = root / code_field
-    result.source_path = source_path
+    folder_path = root / code_field
+    result.source_path = folder_path
 
-    if not source_path.exists():
+    if not folder_path.exists() or not folder_path.is_dir():
         result.issues.append(
-            f"Doc 'code' field points to non-existent source: {code_field}"
+            f"Doc 'code' field points to non-existent source folder: {code_field}"
         )
         return result
 
-    # 2. Check code->doc pointer
-    doc_pointer = get_source_doc_pointer(source_path, config)
-    if not doc_pointer:
+    # 2. Check that at least one source file in the folder points back to this doc
+    expected_doc_rel = doc_path.relative_to(root).as_posix()
+    found_pointer = False
+    for src_file in folder_path.iterdir():
+        if not src_file.is_file():
+            continue
+        doc_pointer = get_source_doc_pointer(src_file, config)
+        if doc_pointer == expected_doc_rel:
+            found_pointer = True
+            break
+
+    if not found_pointer:
         result.issues.append(
-            f"Source file has no dok-fu pointer comment: {code_field}"
+            f"No source file in '{code_field}' has a dok-fu pointer to this doc"
         )
         return result
 
     result.source_has_pointer = True
-
-    # 3. Check agreement: does the source pointer resolve back to this doc?
-    expected_doc_rel = doc_path.relative_to(root).as_posix()
-    if doc_pointer != expected_doc_rel:
-        result.issues.append(
-            f"Pointer mismatch: source points to '{doc_pointer}', "
-            f"but doc is at '{expected_doc_rel}'"
-        )
-        return result
-
     result.pair_agrees = True
     return result
 

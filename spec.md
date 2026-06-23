@@ -32,8 +32,10 @@ This system is meant to be used by Github Copilot and Claude Code. It should con
 ## Two-way connection pointers for doc-code
 Purpose: Mapping doc-code files together to create two-way connection
 
-- Doc .md file contains code file name pointer in YAML frontmatter or other format that works
-- Code file contains doc name pointer in YAML frontmatter or other format that works
+- A **module** documents a **folder** in the codebase, not a single file. Module boundaries are defined by directory.
+- Each **section** (H2) inside a module documents one specific source file within that folder. The section header is the filename and the section body includes the repo-relative path to that file.
+- Doc module frontmatter contains a `code:` pointer to the **folder** it covers.
+- Each source file contains a `dok-fu:` comment pointer to its parent module doc file.
 - Scripted logic and/or AI instructions handles searching the doc/code file name, tags and handling synchronization
 
 ## Doc Index 
@@ -61,10 +63,10 @@ Purpose: To be able to swiftly switch between Github Copilot and Claude Code
 - Scripts generate and regenerate Github Copilot and Claude Code infrastructure (skills, instructions and any other .md files and configs) - keeping the documentation system in constant sync between AI tool environments.
 
 ## Things to clarify:
-- What format for doc and code pointers?
-- Glossary for this system
-- How is renaming or changing file paths handled?
-- How are module boundaries defined? (Maybe simply by location in folders?)
+- What format for doc and code pointers? → YAML frontmatter (`code:` = folder) in doc; single comment line (`dok-fu: docs/...`) in source file
+- Glossary for this system → see base/GLOSSARY.md
+- How is renaming or changing file paths handled? → `dokfu doctor` detects broken/orphaned pointers; AI repairs them
+- How are module boundaries defined? → By folder. One module per directory in the source tree.
 
 # Skills
 

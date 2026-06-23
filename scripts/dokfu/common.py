@@ -153,10 +153,14 @@ def walk_sources(config: dict[str, Any], root: str | os.PathLike | None = None) 
 # ---------------------------------------------------------------------------
 
 def map_source_to_doc(source_path: str | os.PathLike, config: dict[str, Any], root: str | os.PathLike | None = None) -> Path:
-    """Return the docs/ mirror path for a given source file.
+    """Return the docs/ module path for the folder containing a given source file.
 
-    The mapping preserves directory structure:
-        <root>/<rel/path/to/source.py>  ->  <root>/<docs_dir>/<rel/path/to/source.md>
+    A module covers a directory, not a single file.  The mapping uses the
+    source file's parent directory as the module boundary:
+
+        <root>/src/auth/login.py  ->  <root>/<docs_dir>/src/auth.md
+        <root>/src/auth.py        ->  <root>/<docs_dir>/src.md
+        <root>/app.py             ->  <root>/<docs_dir>/root.md
 
     Args:
         source_path: Absolute or root-relative path to the source file.
@@ -164,7 +168,7 @@ def map_source_to_doc(source_path: str | os.PathLike, config: dict[str, Any], ro
         root: Project root.  Falls back to config['_root'] then cwd.
 
     Returns:
-        Absolute Path of the corresponding docs file (may not exist yet).
+        Absolute Path of the corresponding module doc (may not exist yet).
     """
     root = Path(root or config.get("_root") or Path.cwd())
     docs_dir = config.get("docs_dir", "docs")
@@ -173,16 +177,21 @@ def map_source_to_doc(source_path: str | os.PathLike, config: dict[str, Any], ro
         rel = source_path.relative_to(root)
     else:
         rel = source_path
-    doc_rel = Path(docs_dir) / rel.with_suffix(".md")
+    folder_str = rel.parent.as_posix()
+    if folder_str == ".":
+        doc_rel = Path(docs_dir) / "root.md"
+    else:
+        doc_rel = Path(docs_dir) / (folder_str + ".md")
     return root / doc_rel
 
 
 def map_doc_to_source(doc_path: str | os.PathLike, config: dict[str, Any], root: str | os.PathLike | None = None) -> Path | None:
-    """Return the source file path for a given docs/ mirror file.
+    """Return the source folder for a given docs/ module file.
 
+    A module covers a directory, so this returns the source directory path.
     Inspects the file's YAML frontmatter ``code`` field if present;
-    otherwise derives the source path by reversing the mirror mapping using
-    the configured ``source_globs`` extensions.
+    otherwise derives the source folder path by stripping the docs prefix
+    and ``.md`` suffix.
 
     Args:
         doc_path: Absolute or root-relative path to the doc file.
@@ -190,7 +199,7 @@ def map_doc_to_source(doc_path: str | os.PathLike, config: dict[str, Any], root:
         root: Project root.  Falls back to config['_root'] then cwd.
 
     Returns:
-        Absolute Path of the corresponding source file, or None if it cannot
+        Absolute Path of the corresponding source folder, or None if it cannot
         be determined.
     """
     root = Path(root or config.get("_root") or Path.cwd())
@@ -212,19 +221,18 @@ def map_doc_to_source(doc_path: str | os.PathLike, config: dict[str, Any], root:
         except (ValueError, OSError):
             pass
 
-    # Derive from path: strip docs_dir prefix, replace .md with known source exts
+    # Derive source folder from doc path: strip docs_dir prefix and .md suffix
     try:
         rel_after_docs = rel.relative_to(docs_dir)
     except ValueError:
         return None
 
-    stem = rel_after_docs.with_suffix("")
-    comment_map: dict[str, str] = config.get("comment_map", {})
-    for ext in comment_map:
-        candidate = root / stem.with_suffix(ext)
-        if candidate.exists():
-            return candidate
-
+    folder_rel = rel_after_docs.with_suffix("")
+    if folder_rel.as_posix() == "root":
+        return root
+    candidate = root / folder_rel
+    if candidate.is_dir():
+        return candidate
     return None
 
 

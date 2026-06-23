@@ -60,7 +60,7 @@ class TestBuildIndex:
         doc = env / "docs" / "auth.md"
         write_frontmatter_file(
             doc,
-            {"code": "src/auth.py", "tags": ["auth"], "description": "Handles auth."},
+            {"code": "src/auth", "tags": ["auth"], "description": "Handles auth."},
             "# Auth\n",
         )
         entries = build_index(cfg, root=env)

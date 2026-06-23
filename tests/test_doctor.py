@@ -57,13 +57,24 @@ def cfg(env):
     return load_config(root=env)
 
 
-def _make_valid_pair(env: Path, rel_src="src/auth.py", rel_doc="docs/src/auth.md"):
+def _make_valid_pair(env: Path, rel_src="src/auth.py", rel_doc="docs/src.md"):
+    """Create a valid module + source file pair.
+
+    The module (rel_doc) covers the folder containing rel_src.
+    """
+    from pathlib import PurePosixPath
+    src_folder = str(PurePosixPath(rel_src).parent)
     doc = env / rel_doc
     doc.parent.mkdir(parents=True, exist_ok=True)
+    body = (
+        f"# {src_folder}\n\n"
+        f"## Sections\n- [auth.py](#auth-py)\n\n"
+        f"## auth.py\npath: {rel_src}\nHandles auth.\n"
+    )
     write_frontmatter_file(
         doc,
-        {"code": rel_src, "tags": ["auth"], "description": "Auth module."},
-        "# Auth\n",
+        {"code": src_folder, "tags": ["auth"], "description": "Auth module."},
+        body,
     )
     src = env / rel_src
     src.parent.mkdir(parents=True, exist_ok=True)
@@ -93,9 +104,9 @@ class TestCheckPointers:
         broken, orphaned = check_pointers(cfg, root=env)
         assert any("docs/x.md" in b for b in broken)
 
-    def test_orphaned_doc_missing_source(self, cfg, env):
+    def test_orphaned_doc_missing_source_folder(self, cfg, env):
         doc = env / "docs" / "x.md"
-        write_frontmatter_file(doc, {"code": "src/ghost.py"}, "")
+        write_frontmatter_file(doc, {"code": "src/ghost"}, "")
         broken, orphaned = check_pointers(cfg, root=env)
         assert any("docs/x.md" in b for b in broken)
         assert "docs/x.md" in orphaned
@@ -110,14 +121,15 @@ class TestCheckOrphanedSources:
         assert check_orphaned_sources(cfg, root=env) == []
 
     def test_source_with_doc_not_orphaned(self, cfg, env):
+        # src/auth.py -> map_source_to_doc -> docs/src.md (which exists after valid pair)
         _make_valid_pair(env)
         orphans = check_orphaned_sources(cfg, root=env)
         assert "src/auth.py" not in orphans
 
     def test_source_with_pointer_not_orphaned(self, cfg, env):
-        # Source has a pointer comment but no doc mirror -> not orphaned
+        # Source has a pointer comment but no module doc -> still not orphaned
         src = env / "src" / "partial.py"
-        src.write_text("# dok-fu: docs/src/partial.md\n", encoding="utf-8")
+        src.write_text("# dok-fu: docs/src.md\n", encoding="utf-8")
         orphans = check_orphaned_sources(cfg, root=env)
         assert "src/partial.py" not in orphans
 

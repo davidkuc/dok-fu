@@ -37,15 +37,20 @@ Installed into target:
 - docs/index.json, docs/<mirror>.md
 
 ## FORMAT REFERENCE (authoritative for implementation)
+Module boundary: one doc module per SOURCE DIRECTORY. A module documents a folder, not a
+  single file. Each H2 section inside the module documents one specific source file.
 Doc frontmatter (YAML at top of every docs/*.md):
   dokfu_id: stable slug (optional aid for rename repair)
-  code: repo-relative path to source file
+  code: repo-relative path to the SOURCE FOLDER this module covers
   tags: [list, from, registry]
-  description: ONE sentence (index source)
+  description: ONE sentence describing the folder/component (index source)
 Module body (after frontmatter): H1 title; "## Sections" mini-index (bullet list of the
-  module's own H2 headings); then H2 sections, each <=3 sentences and <=5 bullets.
-Code pointer: single comment line near top using language comment + token, e.g.
-  "<comment> dok-fu: docs/<mirrored>.md". Token + per-language comment map in config.
+  module's own H2 headings, each heading = a source filename); then H2 sections where
+  each H2 = one source file — header is the filename, first line is `path: <repo-relative
+  path>`, then content <=3 sentences and <=5 bullets.
+Code pointer: single comment line near top of EACH source file using language comment +
+  token, e.g. "<comment> dok-fu: docs/<mirrored-folder>.md". Points to the parent module.
+  Token + per-language comment map in config.
 Index file docs/index.json: flat array of {path, tags[], description}; consumers group
   by directory prefix (progressive disclosure). Regenerated, never hand-edited.
 Tag registry config/tags.registry.json: { tag: short-explanation } controlled vocabulary.
@@ -90,13 +95,13 @@ Config config/dok-fu.config.json: docs_dir, source_globs[], exclude_globs[], poi
 - [X] tests: test_index, test_pointers, test_tags, test_changes, test_doctor
 
 ## PHASE 3 — Base reference content (single source)  (deps: P1; parallel w/ P2)
-- [ ] base/skills/traverse/SKILL.md: index->modules(section index)->comments->code; uses `dokfu tags`; save relevant paths to memory
-- [ ] base/skills/enrich/SKILL.md: detect missing comment/section/index entry; fill within terseness limits (idx 1 sent, module 3 sent/5 bullets, comment 1 sent)
-- [ ] base/skills/update/SKILL.md: run `dokfu changes` -> follow pointers -> edit section+comments -> `dokfu index`
-- [ ] base/instructions/dok-fu.base.md: system overview, pillars, format rules, when to run which skill/script
-- [ ] base/prompts/{traverse,enrich,update}.md: short invokable wrappers around skill bodies
-- [ ] templates/module.md.tmpl: frontmatter + ## Sections + sample H2
-- [ ] base/GLOSSARY.md: index, module, comment, pointer, tag, traverse, enrich, update, drift, orphan
+- [X] base/skills/traverse/SKILL.md: index->modules(section index)->comments->code; uses `dokfu tags`; save relevant paths to memory
+- [X] base/skills/enrich/SKILL.md: detect missing comment/section/index entry; fill within terseness limits (idx 1 sent, module 3 sent/5 bullets, comment 1 sent)
+- [X] base/skills/update/SKILL.md: run `dokfu changes` -> follow pointers -> edit section+comments -> `dokfu index`
+- [X] base/instructions/dok-fu.base.md: system overview, pillars, format rules, when to run which skill/script
+- [X] base/prompts/{traverse,enrich,update}.md: short invokable wrappers around skill bodies
+- [X] templates/module.md.tmpl: frontmatter + ## Sections + sample H2
+- [X] base/GLOSSARY.md: index, module, comment, pointer, tag, traverse, enrich, update, drift, orphan
 
 ## PHASE 4 — Generator + installer + CLI  (deps: P2 + P3)
 - [ ] generate.py: read base/ once; emit .claude/skills/<n>/SKILL.md (claude frontmatter)

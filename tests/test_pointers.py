@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 from dokfu.common import load_config, write_frontmatter_file
 from dokfu.pointers import (
     get_doc_code_pointer,
+    get_section_paths,
     get_source_doc_pointer,
     validate_all_docs,
     validate_pair,
@@ -52,12 +53,21 @@ def cfg(env):
 
 
 def _make_valid_pair(env: Path) -> tuple[Path, Path]:
-    """Create a valid doc+source pair in *env* and return (doc_path, src_path)."""
-    doc = env / "docs" / "src" / "auth.md"
+    """Create a valid module + source file pair.
+
+    Module docs/src.md covers the src/ folder.
+    src/auth.py has a pointer back to docs/src.md.
+    """
+    doc = env / "docs" / "src.md"
     doc.parent.mkdir(parents=True, exist_ok=True)
-    write_frontmatter_file(doc, {"code": "src/auth.py", "tags": ["auth"], "description": "Auth."}, "# Auth\n")
+    body = (
+        "# Src\n\n"
+        "## Sections\n- [auth.py](#auth-py)\n\n"
+        "## auth.py\npath: src/auth.py\nHandles login.\n"
+    )
+    write_frontmatter_file(doc, {"code": "src", "tags": ["auth"], "description": "Auth."}, body)
     src = env / "src" / "auth.py"
-    src.write_text("# dok-fu: docs/src/auth.md\n\ndef login(): pass\n", encoding="utf-8")
+    src.write_text("# dok-fu: docs/src.md\n\ndef login(): pass\n", encoding="utf-8")
     return doc, src
 
 
@@ -68,8 +78,8 @@ def _make_valid_pair(env: Path) -> tuple[Path, Path]:
 class TestGetDocCodePointer:
     def test_returns_code_field(self, env):
         doc = env / "docs" / "x.md"
-        write_frontmatter_file(doc, {"code": "src/x.py"}, "")
-        assert get_doc_code_pointer(doc) == "src/x.py"
+        write_frontmatter_file(doc, {"code": "src/x"}, "")
+        assert get_doc_code_pointer(doc) == "src/x"
 
     def test_no_frontmatter_returns_none(self, env):
         doc = env / "docs" / "bare.md"
@@ -92,17 +102,17 @@ class TestGetDocCodePointer:
 class TestGetSourceDocPointer:
     def test_finds_pointer_on_first_line(self, env, cfg):
         src = env / "src" / "a.py"
-        src.write_text("# dok-fu: docs/src/a.md\n\ndef foo(): pass\n", encoding="utf-8")
-        assert get_source_doc_pointer(src, cfg) == "docs/src/a.md"
+        src.write_text("# dok-fu: docs/src.md\n\ndef foo(): pass\n", encoding="utf-8")
+        assert get_source_doc_pointer(src, cfg) == "docs/src.md"
 
     def test_finds_pointer_within_30_lines(self, env, cfg):
-        content = "\n" * 25 + "# dok-fu: docs/src/b.md\n"
+        content = "\n" * 25 + "# dok-fu: docs/src.md\n"
         src = env / "src" / "b.py"
         src.write_text(content, encoding="utf-8")
-        assert get_source_doc_pointer(src, cfg) == "docs/src/b.md"
+        assert get_source_doc_pointer(src, cfg) == "docs/src.md"
 
     def test_does_not_find_pointer_after_30_lines(self, env, cfg):
-        content = "\n" * 31 + "# dok-fu: docs/src/c.md\n"
+        content = "\n" * 31 + "# dok-fu: docs/src.md\n"
         src = env / "src" / "c.py"
         src.write_text(content, encoding="utf-8")
         assert get_source_doc_pointer(src, cfg) is None
@@ -133,32 +143,33 @@ class TestValidatePair:
         assert not result.is_valid
         assert any("code" in issue for issue in result.issues)
 
-    def test_code_points_to_missing_source(self, env, cfg):
+    def test_code_points_to_missing_folder(self, env, cfg):
+        # code: field points to a non-existent directory
         doc = env / "docs" / "x.md"
-        write_frontmatter_file(doc, {"code": "src/ghost.py"}, "")
+        write_frontmatter_file(doc, {"code": "src/ghost"}, "")
         result = validate_pair(doc, cfg, root=env)
         assert not result.is_valid
         assert any("non-existent" in issue for issue in result.issues)
 
     def test_source_missing_pointer(self, env, cfg):
-        doc = env / "docs" / "src" / "x.md"
-        doc.parent.mkdir(parents=True, exist_ok=True)
-        write_frontmatter_file(doc, {"code": "src/x.py"}, "")
+        # src/ folder exists but its files have no pointer back to the module
+        doc = env / "docs" / "src.md"
+        write_frontmatter_file(doc, {"code": "src"}, "")
         src = env / "src" / "x.py"
         src.write_text("def foo(): pass\n", encoding="utf-8")
         result = validate_pair(doc, cfg, root=env)
         assert not result.is_valid
-        assert any("pointer comment" in issue for issue in result.issues)
+        assert any("pointer" in issue for issue in result.issues)
 
     def test_pointer_mismatch(self, env, cfg):
-        doc = env / "docs" / "src" / "x.md"
-        doc.parent.mkdir(parents=True, exist_ok=True)
-        write_frontmatter_file(doc, {"code": "src/x.py"}, "")
+        # Source file has a pointer but it points to a different doc
+        doc = env / "docs" / "src.md"
+        write_frontmatter_file(doc, {"code": "src"}, "")
         src = env / "src" / "x.py"
-        src.write_text("# dok-fu: docs/src/other.md\n", encoding="utf-8")
+        src.write_text("# dok-fu: docs/other.md\n", encoding="utf-8")
         result = validate_pair(doc, cfg, root=env)
         assert not result.is_valid
-        assert any("mismatch" in issue for issue in result.issues)
+        assert any("pointer" in issue for issue in result.issues)
 
 
 # ---------------------------------------------------------------------------
@@ -176,12 +187,38 @@ class TestValidateAllDocs:
 
     def test_mixed_valid_and_invalid(self, env, cfg):
         _make_valid_pair(env)
-        # Add a broken doc
+        # Add a broken doc pointing to a non-existent folder
         bad = env / "docs" / "bad.md"
-        write_frontmatter_file(bad, {"code": "src/ghost.py"}, "")
+        write_frontmatter_file(bad, {"code": "src/ghost"}, "")
         results = validate_all_docs(cfg, root=env)
         assert len(results) == 2
         valid_count = sum(1 for r in results if r.is_valid)
         invalid_count = sum(1 for r in results if not r.is_valid)
         assert valid_count == 1
         assert invalid_count == 1
+
+
+# ---------------------------------------------------------------------------
+# get_section_paths
+# ---------------------------------------------------------------------------
+
+class TestGetSectionPaths:
+    def test_returns_paths_from_sections(self, env):
+        body = (
+            "# Module\n\n"
+            "## Sections\n- [foo.py](#foo-py)\n- [bar.py](#bar-py)\n\n"
+            "## foo.py\npath: src/foo.py\nDoes foo things.\n\n"
+            "## bar.py\npath: src/bar.py\nDoes bar things.\n"
+        )
+        doc = env / "docs" / "src.md"
+        write_frontmatter_file(doc, {"code": "src"}, body)
+        paths = get_section_paths(doc)
+        assert paths == ["src/foo.py", "src/bar.py"]
+
+    def test_no_sections_returns_empty(self, env):
+        doc = env / "docs" / "empty.md"
+        write_frontmatter_file(doc, {"code": "src"}, "# Module\nNo sections.\n")
+        assert get_section_paths(doc) == []
+
+    def test_missing_file_returns_empty(self, env):
+        assert get_section_paths(env / "docs" / "ghost.md") == []

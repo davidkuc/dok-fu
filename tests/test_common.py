@@ -93,7 +93,7 @@ class TestFrontmatter:
         text = textwrap.dedent("""\
             ---
             dokfu_id: my-module
-            code: src/auth.py
+            code: src/auth
             tags: [auth, cli]
             description: Handles login flow.
             ---
@@ -102,7 +102,7 @@ class TestFrontmatter:
         """)
         fm, body = read_frontmatter(text)
         assert fm["dokfu_id"] == "my-module"
-        assert fm["code"] == "src/auth.py"
+        assert fm["code"] == "src/auth"
         assert fm["tags"] == ["auth", "cli"]
         assert body.startswith("# My Module")
 
@@ -124,7 +124,7 @@ class TestFrontmatter:
             read_frontmatter(text)
 
     def test_roundtrip(self):
-        fm = {"code": "src/foo.py", "tags": ["cli"], "description": "A thing."}
+        fm = {"code": "src/foo", "tags": ["cli"], "description": "A thing."}
         body = "# Foo\nSome content.\n"
         result = write_frontmatter(fm, body)
         parsed_fm, parsed_body = read_frontmatter(result)
@@ -133,7 +133,7 @@ class TestFrontmatter:
 
     def test_file_roundtrip(self, tmp_path):
         path = tmp_path / "module.md"
-        fm = {"code": "src/bar.py", "tags": ["io"]}
+        fm = {"code": "src/bar", "tags": ["io"]}
         body = "# Bar\n"
         write_frontmatter_file(path, fm, body)
         parsed_fm, parsed_body = read_frontmatter_file(path)
@@ -188,31 +188,41 @@ class TestPathMapping:
     def test_source_to_doc(self, cfg, config_dir):
         source = config_dir / "src" / "auth.py"
         doc = map_source_to_doc(source, cfg, root=config_dir)
-        assert doc == config_dir / "docs" / "src" / "auth.md"
+        assert doc == config_dir / "docs" / "src.md"
 
     def test_source_to_doc_relative(self, cfg, config_dir):
         doc = map_source_to_doc(Path("src/auth.py"), cfg, root=config_dir)
+        assert doc == config_dir / "docs" / "src.md"
+
+    def test_source_to_doc_nested(self, cfg, config_dir):
+        source = config_dir / "src" / "auth" / "login.py"
+        doc = map_source_to_doc(source, cfg, root=config_dir)
         assert doc == config_dir / "docs" / "src" / "auth.md"
 
+    def test_source_to_doc_root_level_file(self, cfg, config_dir):
+        source = config_dir / "app.py"
+        doc = map_source_to_doc(source, cfg, root=config_dir)
+        assert doc == config_dir / "docs" / "root.md"
+
     def test_doc_to_source_via_frontmatter(self, cfg, config_dir):
-        docs_path = config_dir / "docs" / "src" / "auth.md"
+        docs_path = config_dir / "docs" / "src.md"
         docs_path.parent.mkdir(parents=True, exist_ok=True)
-        write_frontmatter_file(docs_path, {"code": "src/auth.py"}, "# Auth\n")
+        write_frontmatter_file(docs_path, {"code": "src"}, "# Src\n")
         result = map_doc_to_source(docs_path, cfg, root=config_dir)
-        assert result == config_dir / "src" / "auth.py"
+        assert result == config_dir / "src"
 
     def test_doc_to_source_via_filesystem(self, cfg, config_dir):
-        # No frontmatter; source exists on disk
-        src = config_dir / "src" / "util.py"
-        src.parent.mkdir(parents=True, exist_ok=True)
-        src.write_text("# util", encoding="utf-8")
+        # No frontmatter; source folder exists on disk
+        src_folder = config_dir / "src" / "util"
+        src_folder.mkdir(parents=True, exist_ok=True)
         docs_path = config_dir / "docs" / "src" / "util.md"
         docs_path.parent.mkdir(parents=True, exist_ok=True)
         docs_path.write_text("# Util\n", encoding="utf-8")
         result = map_doc_to_source(docs_path, cfg, root=config_dir)
-        assert result == src
+        assert result == src_folder
 
     def test_doc_to_source_no_match(self, cfg, config_dir):
+        # No frontmatter and no matching folder on disk
         docs_path = config_dir / "docs" / "src" / "ghost.md"
         docs_path.parent.mkdir(parents=True, exist_ok=True)
         docs_path.write_text("# Ghost\n", encoding="utf-8")
