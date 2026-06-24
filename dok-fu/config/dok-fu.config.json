@@ -23,7 +23,7 @@
     "**/build/**",
     "**/__pycache__/**",
     "**/*.min.js",
-    "scripts/dokfu/**",
+    "dok-fu/scripts/dokfu/**",
     "docs/**"
   ],
   "pointer_token": "dok-fu",
@@ -43,6 +43,8 @@
     ".rb":   "#",
     ".sh":   "#"
   },
-  "registry_path": "config/tags.registry.json",
-  "manifest_path": "docs/.dokfu-manifest.json"
+  "registry_path": "dok-fu/config/tags.registry.json",
+  "manifest_path": "docs/.dokfu-manifest.json",
+  "dokfu_dir": "dok-fu",
+  "output_root": "."
 }

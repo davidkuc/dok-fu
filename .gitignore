@@ -20,12 +20,12 @@ htmlcov/
 
 # Generated artifacts
 docs/.dokfu-manifest.json
-examples/sample/.github/
-examples/sample/.claude/
-examples/sample/docs/
-examples/sample/scripts/dokfu/
-examples/sample/base/
-examples/sample/config/
+dok-fu/examples/sample/.github/
+dok-fu/examples/sample/.claude/
+dok-fu/examples/sample/docs/
+dok-fu/examples/sample/scripts/dokfu/
+dok-fu/examples/sample/base/
+dok-fu/examples/sample/config/
 
 # Dev
 .github/dok-fu-dev.instructions.md

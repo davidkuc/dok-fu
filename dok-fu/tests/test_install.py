@@ -1,5 +1,5 @@
 """
-tests/test_install.py - Unit tests for scripts/dokfu/install.py
+dok-fu/tests/test_install.py - Unit tests for dok-fu/scripts/dokfu/install.py
 """
 
 import sys

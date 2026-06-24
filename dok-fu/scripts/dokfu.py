@@ -4,7 +4,7 @@ dokfu.py - CLI entry point for the dok-fu documentation workflow system.
 
 Subcommands:
   install   [--target DIR]         Scaffold + vendor into a target project
-  generate                         Regenerate .github/.claude from base/
+  generate                         Regenerate .github/.claude from dok-fu/base/
   index     [--check]              Build docs/index.json; --check exits nonzero if stale
   tags      --list | --search TAG  List registry / find docs by tag
   doctor    [--fix-index]          Validate pointers, tags, index; report problems
@@ -204,7 +204,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     # generate
-    sub.add_parser("generate", help="Regenerate .github/.claude from base/ (idempotent)")
+    sub.add_parser("generate", help="Regenerate .github/.claude from dok-fu/base/ (idempotent)")
 
     # index
     p_index = sub.add_parser("index", help="Build docs/index.json")

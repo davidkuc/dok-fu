@@ -1,7 +1,7 @@
 """
-generate.py - Generate .github/ and .claude/ AI tool scaffolding from base/.
+generate.py - Generate .github/ and .claude/ AI tool scaffolding from dok-fu/base/.
 
-Reads base/ as the single source of truth and emits:
+Reads dok-fu/base/ as the single source of truth and emits:
   .github/skills/<name>/SKILL.md          (GitHub Copilot skill)
   .github/prompts/<name>.prompt.md        (GitHub Copilot prompt)
   .github/instructions/dok-fu.instructions.md
@@ -37,7 +37,7 @@ def _strip_frontmatter(text: str) -> str:
 
 
 def _read_base_file(path: Path) -> str:
-    """Read a base/ source file and return its raw text."""
+    """Read a dok-fu/base/ source file and return its raw text."""
     return path.read_text(encoding="utf-8")
 
 
@@ -142,13 +142,13 @@ def generate(
     out_root: str | os.PathLike | None = None,
     base_dir: str | os.PathLike | None = None,
 ) -> GenerateResult:
-    """Generate .github/ and .claude/ from base/.
+    """Generate .github/ and .claude/ from dok-fu/base/.
 
     Args:
         config: Loaded dok-fu config dict. Loaded from disk if not provided.
         root: Project root. Defaults to cwd.
         out_root: Where to write .github/ and .claude/.  Defaults to *root*.
-        base_dir: Path to the base/ source directory.  Defaults to
+        base_dir: Path to the dok-fu/base/ source directory.  Defaults to
             ``<root>/base``.
 
     Returns:
@@ -161,16 +161,16 @@ def generate(
         except FileNotFoundError:
             config = {"_root": str(root)}
 
-    out = Path(out_root) if out_root else root
-    base = Path(base_dir) if base_dir else root / "base"
+    out = Path(out_root) if out_root else root / config.get("output_root", ".")
+    base = Path(base_dir) if base_dir else root / config.get("dokfu_dir", "dok-fu") / "base"
 
     if not base.exists():
-        raise FileNotFoundError(f"base/ directory not found: {base}")
+        raise FileNotFoundError(f"dok-fu/base/ directory not found: {base}")
 
     result = GenerateResult()
 
     # ------------------------------------------------------------------
-    # Skills:  base/skills/<name>/SKILL.md → .github + .claude
+    # Skills:  dok-fu/base/skills/<name>/SKILL.md → .github + .claude
     # ------------------------------------------------------------------
     skills_dir = base / "skills"
     if skills_dir.exists():
@@ -191,7 +191,7 @@ def generate(
             result.record(out / ".claude" / "skills" / name / "SKILL.md", changed)
 
     # ------------------------------------------------------------------
-    # Prompts:  base/prompts/<name>.md → .github/prompts/<name>.prompt.md
+    # Prompts:  dok-fu/base/prompts/<name>.md → .github/prompts/<name>.prompt.md
     # ------------------------------------------------------------------
     prompts_dir = base / "prompts"
     if prompts_dir.exists():
@@ -203,7 +203,7 @@ def generate(
             result.record(out / ".github" / "prompts" / f"{name}.prompt.md", changed)
 
     # ------------------------------------------------------------------
-    # Instructions:  base/instructions/<stem>.md → per-file output + copilot-instructions
+    # Instructions:  dok-fu/base/instructions/<stem>.md → per-file output + copilot-instructions
     # ------------------------------------------------------------------
     instructions_dir = base / "instructions"
     instruction_bodies: list[str] = []
@@ -213,7 +213,7 @@ def generate(
             body = _read_base_file(instr_file)
             instruction_bodies.append(body)
 
-            # Per-file GitHub instructions: base/instructions/<stem>.md → .github/instructions/<stem>.instructions.md
+            # Per-file GitHub instructions: dok-fu/base/instructions/<stem>.md → .github/instructions/<stem>.instructions.md
             changed = _emit_github_instructions(body, out, stem=stem)
             result.record(
                 out / ".github" / "instructions" / f"{stem}.instructions.md", changed

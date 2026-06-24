@@ -1,5 +1,5 @@
 """
-tests/test_pointers.py - Unit tests for scripts/dokfu/pointers.py
+dok-fu/tests/test_pointers.py - Unit tests for dok-fu/scripts/dokfu/pointers.py
 """
 
 import json
@@ -32,14 +32,16 @@ def env(tmp_path):
         "exclude_globs": ["**/__pycache__/**"],
         "pointer_token": "dok-fu",
         "comment_map": {".py": "#"},
-        "registry_path": "config/tags.registry.json",
+        "registry_path": "dok-fu/config/tags.registry.json",
         "manifest_path": "docs/.dokfu-manifest.json",
+        "dokfu_dir": "dok-fu",
+        "output_root": ".",
     }
-    (tmp_path / "config").mkdir()
-    (tmp_path / "config" / "dok-fu.config.json").write_text(
+    (tmp_path / "dok-fu" / "config").mkdir(parents=True)
+    (tmp_path / "dok-fu" / "config" / "dok-fu.config.json").write_text(
         json.dumps(cfg_data), encoding="utf-8"
     )
-    (tmp_path / "config" / "tags.registry.json").write_text(
+    (tmp_path / "dok-fu" / "config" / "tags.registry.json").write_text(
         json.dumps({"auth": "authentication"}), encoding="utf-8"
     )
     (tmp_path / "docs").mkdir()

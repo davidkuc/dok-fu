@@ -18,7 +18,7 @@ import yaml
 # Config
 # ---------------------------------------------------------------------------
 
-_DEFAULT_CONFIG_PATH = "config/dok-fu.config.json"
+_DEFAULT_CONFIG_PATH = "dok-fu/config/dok-fu.config.json"
 
 
 def load_config(config_path: str | os.PathLike | None = None, root: str | os.PathLike | None = None) -> dict[str, Any]:

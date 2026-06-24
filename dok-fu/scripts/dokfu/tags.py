@@ -34,7 +34,7 @@ def load_registry(config: dict[str, Any], root: str | os.PathLike | None = None)
         json.JSONDecodeError: If the registry file is not valid JSON.
     """
     root = Path(root or config.get("_root") or Path.cwd())
-    registry_path = root / config.get("registry_path", "config/tags.registry.json")
+    registry_path = root / config.get("registry_path", "dok-fu/config/tags.registry.json")
     if not registry_path.exists():
         raise FileNotFoundError(f"Tag registry not found: {registry_path}")
     return json.loads(registry_path.read_text(encoding="utf-8"))

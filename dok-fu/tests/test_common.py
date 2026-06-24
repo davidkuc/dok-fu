@@ -1,5 +1,5 @@
 """
-tests/test_common.py - Unit tests for scripts/dokfu/common.py
+dok-fu/tests/test_common.py - Unit tests for dok-fu/scripts/dokfu/common.py
 """
 
 import json
@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-# Make the scripts/ directory importable when running from project root
+# Make the dok-fu/scripts/ directory importable when running from project root
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 from dokfu.common import (
@@ -42,12 +42,14 @@ def config_dir(tmp_path):
         "exclude_globs": ["**/node_modules/**", "**/__pycache__/**"],
         "pointer_token": "dok-fu",
         "comment_map": {".py": "#", ".js": "//"},
-        "registry_path": "config/tags.registry.json",
+        "registry_path": "dok-fu/config/tags.registry.json",
         "manifest_path": "docs/.dokfu-manifest.json",
+        "dokfu_dir": "dok-fu",
+        "output_root": ".",
     }
-    (tmp_path / "config").mkdir()
-    (tmp_path / "config" / "dok-fu.config.json").write_text(json.dumps(cfg), encoding="utf-8")
-    (tmp_path / "config" / "tags.registry.json").write_text(
+    (tmp_path / "dok-fu" / "config").mkdir(parents=True)
+    (tmp_path / "dok-fu" / "config" / "dok-fu.config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    (tmp_path / "dok-fu" / "config" / "tags.registry.json").write_text(
         json.dumps({"auth": "authentication", "cli": "command-line interface"}),
         encoding="utf-8",
     )
@@ -80,7 +82,7 @@ class TestLoadConfig:
             load_config(root=tmp_path)
 
     def test_explicit_config_path(self, config_dir):
-        explicit = config_dir / "config" / "dok-fu.config.json"
+        explicit = config_dir / "dok-fu" / "config" / "dok-fu.config.json"
         cfg = load_config(config_path=explicit)
         assert cfg["docs_dir"] == "docs"
 

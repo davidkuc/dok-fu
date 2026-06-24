@@ -29,7 +29,7 @@ Dok-Fu is a documentation workflow system that connects source code and document
 
 ```bash
 # From the dok-fu source repo, install into <your-project>
-python scripts/dokfu.py install --target /path/to/your-project
+python dok-fu/scripts/dokfu.py install --target /path/to/your-project
 ```
 
 This scaffolds `.github/`, `.claude/`, `docs/`, `scripts/`, `base/`, and `config/` into the target.
@@ -37,38 +37,38 @@ This scaffolds `.github/`, `.claude/`, `docs/`, `scripts/`, `base/`, and `config
 ### Day-to-day commands
 
 ```bash
-# Regenerate .github/ and .claude/ from base/ (idempotent)
-python scripts/dokfu.py generate
+# Regenerate .github/ and .claude/ from dok-fu/base/ (idempotent)
+python dok-fu/scripts/dokfu.py generate
 
 # Rebuild docs/index.json
-python scripts/dokfu.py index
+python dok-fu/scripts/dokfu.py index
 
 # Check if index is stale (exits 1 if yes)
-python scripts/dokfu.py index --check
+python dok-fu/scripts/dokfu.py index --check
 
 # List all registered tags
-python scripts/dokfu.py tags --list
+python dok-fu/scripts/dokfu.py tags --list
 
 # Find docs tagged with a specific tag
-python scripts/dokfu.py tags --search util
+python dok-fu/scripts/dokfu.py tags --search util
 
 # Validate all pointers, tags, and index freshness
-python scripts/dokfu.py doctor
+python dok-fu/scripts/dokfu.py doctor
 
 # Validate and rebuild index if stale
-python scripts/dokfu.py doctor --fix-index
+python dok-fu/scripts/dokfu.py doctor --fix-index
 
 # Validate and auto-repair broken doc↔code pointers
-python scripts/dokfu.py doctor --fix-pointers
+python dok-fu/scripts/dokfu.py doctor --fix-pointers
 
 # List source files changed since last commit (HEAD~1 default)
-python scripts/dokfu.py changes
+python dok-fu/scripts/dokfu.py changes
 
 # List changed files since a specific git ref
-python scripts/dokfu.py changes --since main
+python dok-fu/scripts/dokfu.py changes --since main
 
 # Install dok-fu into a target project
-python scripts/dokfu.py install --target /path/to/your-project
+python dok-fu/scripts/dokfu.py install --target /path/to/your-project
 ```
 
 ---
@@ -77,14 +77,14 @@ python scripts/dokfu.py install --target /path/to/your-project
 
 ```
 dok-fu/
-├── base/                         Single source for all AI tool output
+├── dok-fu/base/                         Single source for all AI tool output
 │   ├── instructions/             System-level instructions (base)
 │   ├── prompts/                  Invokable prompt wrappers
 │   └── skills/                   Skill bodies (traverse, enrich, update)
-├── config/
+├── dok-fu/config/
 │   ├── dok-fu.config.json        Docs dir, source globs, comment map, paths
 │   └── tags.registry.json        Controlled tag vocabulary
-├── scripts/
+├── dok-fu/scripts/
 │   ├── dokfu.py                  CLI entry point (argparse)
 │   └── dokfu/                    Python package
 │       ├── common.py             Config, frontmatter, path mapping, pointers
@@ -93,12 +93,12 @@ dok-fu/
 │       ├── tags.py               Tag registry: list and search
 │       ├── changes.py            Changed-file detection (git + manifest)
 │       ├── doctor.py             Validate everything, report problems
-│       ├── generate.py           base/ → .github/ + .claude/ (idempotent)
+│       ├── generate.py           dok-fu/base/ → .github/ + .claude/ (idempotent)
 │       └── install.py            Vendor dok-fu into a target project
-├── templates/
+├── dok-fu/templates/
 │   └── module.md.tmpl            Template for new doc modules
-├── tests/                        pytest unit tests
-└── examples/
+├── dok-fu/tests/                        pytest unit tests
+└── dok-fu/examples/
     └── sample/                   Minimal two-file project with complete docs
 ```
 
@@ -152,7 +152,7 @@ See [base/FORMAT.md](base/FORMAT.md) for the canonical format specification cove
 - **Exploring unfamiliar code?** → Traverse
 - **New file added / doc gaps detected by `dokfu doctor`?** → Enrich
 - **`dokfu changes` returned a non-empty list?** → Update
-- **Pointer broken / file renamed?** → Run `python scripts/dokfu.py doctor` to detect rename candidates via `dokfu_id` matching; run `python scripts/dokfu.py doctor --fix-pointers` to auto-repair pointer comments; then run `python scripts/dokfu.py index`
+- **Pointer broken / file renamed?** → Run `python dok-fu/scripts/dokfu.py doctor` to detect rename candidates via `dokfu_id` matching; run `python dok-fu/scripts/dokfu.py doctor --fix-pointers` to auto-repair pointer comments; then run `python dok-fu/scripts/dokfu.py index`
 
 ---
 
@@ -172,17 +172,17 @@ See [base/FORMAT.md](base/FORMAT.md) for the canonical format specification cove
 python -m pytest
 
 # Syntax check
-python -m py_compile scripts/dokfu/*.py scripts/dokfu.py
+python -m py_compile dok-fu/scripts/dokfu/*.py dok-fu/scripts/dokfu.py
 
 # Install into a test target
-python scripts/dokfu.py install --target /tmp/test-project
+python dok-fu/scripts/dokfu.py install --target /tmp/test-project
 
 # Verify installed target's own CLI runs
 cd /tmp/test-project
-python scripts/dokfu.py index
-python scripts/dokfu.py doctor
-python scripts/dokfu.py tags --search util
-python scripts/dokfu.py changes
+python dok-fu/scripts/dokfu.py index
+python dok-fu/scripts/dokfu.py doctor
+python dok-fu/scripts/dokfu.py tags --search util
+python dok-fu/scripts/dokfu.py changes
 ```
 
 ---

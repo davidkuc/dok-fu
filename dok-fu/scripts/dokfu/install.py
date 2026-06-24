@@ -1,7 +1,7 @@
 """
 install.py - Install dok-fu into a target project.
 
-Copies the dok-fu runtime (scripts/, base/, config/) into the target directory,
+Copies the dok-fu runtime (scripts/, dok-fu/base/, dok-fu/config/) into the target directory,
 creates the docs/ scaffold, runs generate to produce .github/ and .claude/,
 and seeds the change-detection manifest.
 """
@@ -99,19 +99,32 @@ def install(
     result = InstallResult(target=target)
 
     # 1. Copy runtime directories
-    dirs_to_copy = [
-        (src / "scripts" / "dokfu", target / "scripts" / "dokfu"),
-        (src / "base", target / "base"),
-        (src / "config", target / "config"),
-        (src / "templates", target / "templates"),
-    ]
+    # Note: source may have directories at root level (old layout) or in dok-fu/ (new layout)
+    dirs_to_copy = []
+    
+    # Try new layout first (post-migration), then fallback to old layout
+    for new_src_subpath, final_dst_subpath in [
+        ("dok-fu/scripts/dokfu", "scripts/dokfu"),
+        ("dok-fu/base", "base"),
+        ("dok-fu/config", "config"),
+        ("dok-fu/templates", "templates"),
+        ("scripts/dokfu", "scripts/dokfu"),
+        ("base", "base"),
+        ("config", "config"),
+        ("templates", "templates"),
+    ]:
+        src_path = src / new_src_subpath
+        if src_path.exists() and not any(d[1] == target / final_dst_subpath for d in dirs_to_copy):
+            dirs_to_copy.append((src_path, target / final_dst_subpath))
+    
     for src_dir, dst_dir in dirs_to_copy:
-        if src_dir.exists():
-            copied = _copy_tree(src_dir, dst_dir, overwrite=overwrite)
-            result.copied_files.extend(str(p) for p in copied)
+        copied = _copy_tree(src_dir, dst_dir, overwrite=overwrite)
+        result.copied_files.extend(str(p) for p in copied)
 
-    # 1a. Copy entry point script
-    dokfu_py_src = src / "scripts" / "dokfu.py"
+    # 1a. Copy entry point script (try both paths)
+    dokfu_py_src = src / "dok-fu" / "scripts" / "dokfu.py"
+    if not dokfu_py_src.exists():
+        dokfu_py_src = src / "scripts" / "dokfu.py"
     if dokfu_py_src.exists():
         dokfu_py_dst = target / "scripts" / "dokfu.py"
         dokfu_py_dst.parent.mkdir(parents=True, exist_ok=True)
@@ -127,6 +140,8 @@ def install(
         target_config = load_config(root=target)
     except FileNotFoundError:
         # Config may not be present in the target yet; fall back to defaults
+        # Note: When installing, files are copied to target/ directly (not dok-fu/),
+        # so dokfu_dir should be "." for the installed version
         target_config = {
             "_root": str(target),
             "docs_dir": "docs",
@@ -136,6 +151,8 @@ def install(
             "comment_map": {".py": "#", ".js": "//", ".ts": "//"},
             "registry_path": "config/tags.registry.json",
             "manifest_path": "docs/.dokfu-manifest.json",
+            "dokfu_dir": ".",
+            "output_root": ".",
         }
 
     gen = generate(config=target_config, root=target)

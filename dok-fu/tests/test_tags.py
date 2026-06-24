@@ -1,5 +1,5 @@
 """
-tests/test_tags.py - Unit tests for scripts/dokfu/tags.py
+dok-fu/tests/test_tags.py - Unit tests for dok-fu/scripts/dokfu/tags.py
 """
 
 import json
@@ -31,14 +31,16 @@ def env(tmp_path):
         "exclude_globs": [],
         "pointer_token": "dok-fu",
         "comment_map": {".py": "#"},
-        "registry_path": "config/tags.registry.json",
+        "registry_path": "dok-fu/config/tags.registry.json",
         "manifest_path": "docs/.dokfu-manifest.json",
+        "dokfu_dir": "dok-fu",
+        "output_root": ".",
     }
-    (tmp_path / "config").mkdir()
-    (tmp_path / "config" / "dok-fu.config.json").write_text(
+    (tmp_path / "dok-fu" / "config").mkdir(parents=True)
+    (tmp_path / "dok-fu" / "config" / "dok-fu.config.json").write_text(
         json.dumps(cfg_data), encoding="utf-8"
     )
-    (tmp_path / "config" / "tags.registry.json").write_text(
+    (tmp_path / "dok-fu" / "config" / "tags.registry.json").write_text(
         json.dumps(registry), encoding="utf-8"
     )
     (tmp_path / "docs").mkdir()
@@ -61,7 +63,8 @@ class TestLoadRegistry:
         assert "auth" in reg
 
     def test_missing_registry_raises(self, cfg, env):
-        (env / "config" / "tags.registry.json").unlink()
+        registry_path = env / cfg.get("registry_path", "config/tags.registry.json")
+        registry_path.unlink()
         with pytest.raises(FileNotFoundError):
             load_registry(cfg, root=env)
 

@@ -1,5 +1,5 @@
 """
-tests/test_generate.py - Unit tests for scripts/dokfu/generate.py
+dok-fu/tests/test_generate.py - Unit tests for dok-fu/scripts/dokfu/generate.py
 
 Verifies:
 - Skills are emitted to both .github and .claude with correct content/frontmatter.
@@ -29,7 +29,7 @@ from dokfu.generate import generate, GenerateResult
 
 @pytest.fixture()
 def base_dir(tmp_path: Path) -> Path:
-    """Create a minimal base/ directory with one skill, one prompt, one instruction."""
+    """Create a minimal dok-fu/base/ directory with one skill, one prompt, one instruction."""
     base = tmp_path / "base"
 
     # Skill
@@ -197,7 +197,7 @@ class TestInstructionsEmission:
         assert copilot_text == base_text
 
     def test_multiple_instruction_files_per_file_routing(self, tmp_path):
-        """Multi-file routing: each base/instructions/<stem>.md → .github/instructions/<stem>.instructions.md."""
+        """Multi-file routing: each dok-fu/base/instructions/<stem>.md → .github/instructions/<stem>.instructions.md."""
         base = tmp_path / "base"
         instr_dir = base / "instructions"
         instr_dir.mkdir(parents=True)
