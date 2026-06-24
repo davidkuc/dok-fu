@@ -4,22 +4,16 @@
 
 Dok-Fu is a documentation workflow system that connects source code and documentation through two-way pointers, a searchable index, and a controlled tag vocabulary. It is designed for incremental, AI-assisted documentation that stays in sync with a living codebase.
 
-## Pillars
+## Glossary
+See `dok-fu\base\GLOSSARY.md` for full definitions.
 
-**Terseness** — minimal verbosity, maximal signal. Every layer has hard limits:
-- Index entries: 1 sentence description maximum
-- Module sections: ≤ 3 sentences, ≤ 5 bullet points per H2 section
-- Inline code comments: 1 sentence maximum
+## Skills Reference
 
-**Progressive Disclosure** — avoid loading unnecessary context. Information is layered from coarsest to finest:
-1. `docs/index.json` — quickest lookup; tags and 1-sentence descriptions only
-2. Doc modules (`docs/**/*.md`) — medium detail; section-level summaries
-3. Code comments — high detail; granular descriptions inside source files
-4. Source code — full detail; last resort
-
-**Deterministic Foundation** — scripts handle traversal, extraction, and validation. AI handles reasoning, writing, and orchestration. Never implement what a script can do reliably or if a script already handles a certain problem.
-
-**AI Augmenting** — AI uses scripts as tools. Scripts produce structured output; AI interprets, writes, and decides.
+| Skill | When to use |
+|---|---|
+| **Traverse** | Need to research the codebase without loading everything - use before implementation |
+| **Enrich** | Source files lack doc pointers, modules, or index entries |
+| **Update** | Source files changed and docs are stale - use after implementation |
 
 ## Scripts Reference
 
@@ -38,14 +32,6 @@ Dok-Fu is a documentation workflow system that connects source code and document
 | `python dok-fu/scripts/dokfu.py generate` | Regenerate `.github/` and `.claude/` from `base/` (idempotent) |
 | `python dok-fu/scripts/dokfu.py install [--target .]` | Full install into a target project |
 
-## Skills Reference
-
-| Skill | When to use |
-|---|---|
-| **Traverse** | Need to research the codebase without loading everything |
-| **Enrich** | Source files lack doc pointers, modules, or index entries |
-| **Update** | Source files changed and docs are stale |
-
 ### Choosing the right skill
 
 - **Exploring unfamiliar code?** → Traverse
@@ -53,7 +39,7 @@ Dok-Fu is a documentation workflow system that connects source code and document
 - **`dokfu changes` returned a non-empty list?** → Update
 - **Pointer broken / file renamed?** → Run `python dok-fu/scripts/dokfu.py doctor` to detect rename candidates via `dokfu_id` matching; run `python dok-fu/scripts/dokfu.py doctor --fix-pointers` to auto-repair pointer comments in source files; then run `python dok-fu/scripts/dokfu.py index`
 
-For complete format specifications, see `base/FORMAT.md`.
+For complete format specifications, see `dok-fu\base\FORMAT.md`.
 
 ## Invariants
 

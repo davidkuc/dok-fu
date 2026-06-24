@@ -129,13 +129,13 @@ Generated into any target project:
 | **drift** | State where docs no longer reflect source (detected by `dokfu doctor`) |
 | **orphan** | Doc or source whose pointer target no longer exists |
 
-See [base/GLOSSARY.md](base/GLOSSARY.md) for full definitions.
+See [dok-fu\base\GLOSSARY.md](dok-fu\base\GLOSSARY.md) for full definitions.
 
 ---
 
 ## Format Reference
 
-See [base/FORMAT.md](base/FORMAT.md) for the canonical format specification covering doc module structure, frontmatter fields, code pointer syntax, and index entry format.
+See [dok-fu\base\FORMAT.md](dok-fu\base\FORMAT.md) for the canonical format specification covering doc module structure, frontmatter fields, code pointer syntax, and index entry format.
 
 ---
 
